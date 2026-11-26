@@ -1,0 +1,3061 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="收货称重" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>收货称重 / Recepción</title>
+  <link id="apple-touch-icon-link" rel="apple-touch-icon" href="" />
+  <link id="favicon-link" rel="icon" type="image/png" href="" />
+  <link id="manifest-link" rel="manifest" href="" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ExcelJS for styled department-separated .xlsx generation -->
+  <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #e2e8f0;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center bg-slate-200/80">
+
+  <!-- Main Mobile App Container -->
+  <div id="app" class="w-full max-w-[560px] min-h-screen bg-slate-50 shadow-xl flex flex-col relative pb-20">
+
+    <!-- Sticky Top Header -->
+    <header class="sticky top-0 z-30 bg-slate-900 text-white px-4 py-3 shadow-md">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Custom App Logo SVG -->
+          <div id="header-app-logo" class="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-inner"></div>
+          <div class="truncate">
+            <h1 id="hdr-title" class="text-base font-extrabold leading-tight tracking-tight truncate">收货称重台</h1>
+            <p id="hdr-sub" class="text-[11px] text-slate-400 truncate">无码商品 · 实时去皮与比对</p>
+          </div>
+        </div>
+
+        <!-- Bilingual Toggle Pill -->
+        <button id="btn-lang-toggle" type="button"
+          class="shrink-0 flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold transition">
+          <span id="ico-lang-hdr" class="w-4 h-4 text-emerald-400"></span>
+          <span id="lang-pill-zh" class="text-emerald-400">中文</span>
+          <span class="text-slate-500">/</span>
+          <span id="lang-pill-es" class="text-slate-300">ES</span>
+        </button>
+      </div>
+
+      <!-- Top Navigation Tabs -->
+      <nav class="grid grid-cols-3 gap-1.5 mt-3 bg-slate-800/90 p-1 rounded-xl">
+        <button type="button" data-tab="weigh" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow">
+          <span id="ico-tab-weigh" class="w-4 h-4 shrink-0"></span>
+          <span id="tab-lbl-weigh">称重录入</span>
+        </button>
+        <button type="button" data-tab="bill" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white">
+          <span id="ico-tab-bill" class="w-4 h-4 shrink-0"></span>
+          <span id="tab-lbl-bill">本车核对</span>
+          <span id="badge-bill-count" class="hidden bg-amber-400 text-slate-900 text-[11px] font-extrabold px-1.5 py-0.2 rounded-full tabular-nums">0</span>
+        </button>
+        <button type="button" data-tab="export" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white">
+          <span id="ico-tab-export" class="w-4 h-4 shrink-0"></span>
+          <span id="tab-lbl-export">词条与Excel</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[500px] pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- =====================================================================
+         VIEW 1: WEIGHING ENTRY (称重录入)
+    ====================================================================== -->
+    <main id="view-weigh" class="p-3.5 space-y-3.5 flex-1">
+
+      <!-- 1. Supplier & Department Selector -->
+      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+        <div>
+          <label id="lbl-supplier" for="inp-supplier" class="block text-xs font-bold text-slate-600 mb-1">供应商名称 (选填)</label>
+          <div class="relative flex items-center">
+            <input id="inp-supplier" type="text" list="supplier-datalist" autocomplete="off"
+              placeholder="输入供应商名称..."
+              class="w-full h-12 px-3.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-semibold outline-none transition" />
+            <button id="btn-clear-supplier" type="button" title="Clear"
+              class="hidden absolute right-2 w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center">
+              <span id="ico-clear-sup" class="w-4 h-4"></span>
+            </button>
+          </div>
+          <datalist id="supplier-datalist"></datalist>
+          <div id="recent-suppliers-bar" class="hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2"></div>
+        </div>
+
+        <!-- Department Buttons with Custom Vector SVG Icons -->
+        <div>
+          <label id="lbl-dept" class="block text-xs font-bold text-slate-600 mb-1.5">收货部门</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" data-dept="produce" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-emerald-600 text-white border-emerald-600 shadow-sm">
+              <span id="ico-dept-produce" class="w-6 h-6"></span>
+              <span id="dept-lbl-produce">蔬菜水果</span>
+            </button>
+            <button type="button" data-dept="meat" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50">
+              <span id="ico-dept-meat" class="w-6 h-6"></span>
+              <span id="dept-lbl-meat">肉类部</span>
+            </button>
+            <button type="button" data-dept="charcuteria" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50">
+              <span id="ico-dept-charcuteria" class="w-6 h-6"></span>
+              <span id="dept-lbl-charcuteria">Charcutería</span>
+            </button>
+          </div>
+
+          <!-- Meat Sub-department Selector with Custom Vector SVG Icons -->
+          <div id="meat-sub-bar" class="hidden grid grid-cols-3 gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
+            <button type="button" data-sub="beef" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-rose-700 text-white border-rose-700">
+              <span id="ico-sub-beef" class="w-5 h-5"></span>
+              <span id="sub-lbl-beef">牛肉 (Res)</span>
+            </button>
+            <button type="button" data-sub="pork" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300">
+              <span id="ico-sub-pork" class="w-5 h-5"></span>
+              <span id="sub-lbl-pork">猪肉 (Cerdo)</span>
+            </button>
+            <button type="button" data-sub="chicken" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300">
+              <span id="ico-sub-chicken" class="w-5 h-5"></span>
+              <span id="sub-lbl-chicken">鸡肉 (Pollo)</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Item Selection & Auto-Save Dictionary Card -->
+      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <label id="lbl-item" for="inp-item-name" class="text-xs font-bold text-slate-600">商品名称 (点选或输入新品)</label>
+          <button id="btn-temp-rule" type="button"
+            class="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition shrink-0">
+            <span id="ico-rule-gear" class="w-3.5 h-3.5"></span>
+            <span id="lbl-btn-rule">切换称重模板</span>
+          </button>
+        </div>
+
+        <div class="flex gap-2">
+          <div class="relative flex-1">
+            <span id="ico-search-item" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></span>
+            <input id="inp-item-name" type="text" autocomplete="off"
+              placeholder="输入商品名称 (称重一次自动保存)..."
+              class="w-full h-12 pl-10 pr-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold outline-none transition" />
+          </div>
+          <button id="btn-clear-item" type="button"
+            class="px-3.5 h-12 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs shrink-0 flex items-center gap-1">
+            <span id="ico-reset-item" class="w-3.5 h-3.5"></span>
+            <span id="lbl-btn-clear">清空</span>
+          </button>
+        </div>
+
+        <!-- Quick-select frequency-sorted item pills -->
+        <div id="quick-items-grid" class="flex flex-wrap gap-1.5 pt-1"></div>
+
+        <!-- Temporary / Custom Template Switcher Drawer -->
+        <div id="rule-drawer" class="hidden pt-2.5 mt-2 border-t border-slate-200 space-y-2">
+          <p id="lbl-rule-hint" class="text-[11px] font-semibold text-slate-500">选择当前商品使用的称重计算模板：</p>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" data-tpl="A" class="tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition">
+              <div id="tpl-name-A">模板A · 筐/箱称重</div>
+              <div id="tpl-desc-A" class="text-[10px] font-normal opacity-80">多秤累加 + 混合扣筐 + 补斤</div>
+            </button>
+            <button type="button" data-tpl="B" class="tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition">
+              <div id="tpl-name-B">模板B · 成对称重</div>
+              <div id="tpl-desc-B" class="text-[10px] font-normal opacity-80">半边A + 半边B + 可选内脏</div>
+            </button>
+            <button type="button" data-tpl="C" class="tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition">
+              <div id="tpl-name-C">模板C · 多轮累加</div>
+              <div id="tpl-desc-C" class="text-[10px] font-normal opacity-80">地秤多轮重量相加</div>
+            </button>
+            <button type="button" data-tpl="D" class="tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition">
+              <div id="tpl-name-D">模板D · 直称净重</div>
+              <div id="tpl-desc-D" class="text-[10px] font-normal opacity-80">默认已去皮 · 可选临时扣筐</div>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. Dynamic Weighing Form Area -->
+      <div id="weighing-form-container" class="space-y-3.5"></div>
+
+      <!-- 4. Live Result & Add-to-Bill Action Card -->
+      <section class="bg-slate-900 text-white rounded-2xl p-4 shadow-lg space-y-3">
+        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <div id="res-lbl-net" class="text-[11px] font-semibold text-slate-400">最终实收净重</div>
+            <div id="res-val-net" class="text-2xl font-extrabold text-emerald-400 tabular-nums mt-0.5">0.0 kg</div>
+            <div id="res-sub-diff" class="text-[11px] text-slate-400 tabular-nums mt-0.5"></div>
+          </div>
+          <div class="text-right">
+            <div id="res-lbl-amount" class="text-[11px] font-semibold text-slate-400">就地开单金额</div>
+            <div id="res-val-amount" class="text-2xl font-extrabold text-white tabular-nums mt-0.5">$0.00</div>
+            <div id="res-sub-cost" class="text-[11px] text-amber-300 font-semibold tabular-nums mt-0.5">真实进价: $0.00/kg</div>
+          </div>
+        </div>
+
+        <button id="btn-save-entry" type="button"
+          class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-extrabold text-base shadow-md transition flex items-center justify-center gap-2">
+          <span id="ico-save-entry" class="w-5 h-5"></span>
+          <span id="btn-save-entry-lbl">保存并加入本车核对</span>
+        </button>
+      </section>
+    </main>
+
+    <!-- =====================================================================
+         VIEW 2: ON-SITE VENDOR COMPARISON BILL (本车核对账单)
+    ====================================================================== -->
+    <main id="view-bill" class="hidden p-3.5 space-y-3.5 flex-1">
+
+      <!-- Bill Controls Bar -->
+      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <span id="bill-ctrl-lang-lbl" class="text-xs font-bold text-slate-600">账单显示语言:</span>
+          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl">
+            <button type="button" data-bill-lang="zh" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm">中文</button>
+            <button type="button" data-bill-lang="es" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600">Español</button>
+            <button type="button" data-bill-lang="bi" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600">双语</button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+          <div class="flex items-center gap-2">
+            <span id="ico-hide-cost" class="w-5 h-5 text-slate-600 shrink-0"></span>
+            <div>
+              <div id="bill-hide-cost-title" class="text-xs font-bold text-slate-800">隐藏门店内部真实成本</div>
+              <div id="bill-hide-cost-sub" class="text-[11px] text-slate-500">亮屏给供应商看时建议开启</div>
+            </div>
+          </div>
+          <button id="btn-toggle-hide-cost" type="button" role="switch" aria-checked="false"
+            class="w-12 h-7 rounded-full bg-slate-300 p-1 transition relative shrink-0">
+            <span id="toggle-cost-knob" class="block w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Receipt Card for Vendor Comparison -->
+      <section id="receipt-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-slate-900 text-white px-4 py-3.5">
+          <div class="flex items-center justify-between">
+            <h2 id="rcpt-header" class="text-base font-extrabold tracking-tight">现场收货核对单</h2>
+            <span id="rcpt-date" class="text-xs text-slate-400 tabular-nums"></span>
+          </div>
+          <div class="mt-1.5 flex items-center justify-between text-xs text-slate-300">
+            <span><span id="rcpt-sup-lbl">供应商</span>: <strong id="rcpt-sup-val" class="text-white">—</strong></span>
+            <span id="rcpt-item-count" class="bg-slate-800 px-2 py-0.5 rounded-md tabular-nums">0 项</span>
+          </div>
+        </div>
+
+        <div id="bill-items-list" class="divide-y divide-slate-100"></div>
+
+        <!-- Receipt Grand Totals -->
+        <div class="bg-slate-50 px-4 py-3.5 border-t-2 border-slate-200 space-y-2">
+          <div class="flex justify-between text-xs font-semibold text-slate-600 tabular-nums">
+            <span id="rcpt-tot-net-lbl">总实收净重</span>
+            <span id="rcpt-tot-net-val" class="font-bold text-slate-900">0.0 kg</span>
+          </div>
+          <div class="flex justify-between items-baseline pt-1 border-t border-slate-200/80">
+            <span id="rcpt-tot-amt-lbl" class="text-sm font-extrabold text-slate-900">就地开单总金额</span>
+            <span id="rcpt-tot-amt-val" class="text-2xl font-extrabold text-emerald-700 tabular-nums">$0.00</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Buttons for Bill -->
+      <div class="grid grid-cols-2 gap-2.5">
+        <button id="btn-copy-whatsapp" type="button"
+          class="h-12 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold text-xs px-3 flex items-center justify-center gap-1.5 shadow-sm transition">
+          <span id="ico-copy-wa" class="w-4 h-4 shrink-0"></span>
+          <span id="btn-copy-wa-lbl">复制 WhatsApp 摘要</span>
+        </button>
+        <button id="btn-export-bill-xlsx" type="button"
+          class="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-3 flex items-center justify-center gap-1.5 shadow-sm transition">
+          <span id="ico-xlsx-wa" class="w-4 h-4 shrink-0"></span>
+          <span id="btn-export-wa-lbl">生成Excel发WhatsApp</span>
+        </button>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button id="btn-clear-bill" type="button" class="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 px-2 py-1">
+          <span id="ico-trash-bill" class="w-3.5 h-3.5"></span>
+          <span id="lbl-clear-bill">清空当前核对单</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- =====================================================================
+         VIEW 3: DICTIONARY, EXCEL EXPORT & ICON PACK PREVIEW
+    ====================================================================== -->
+    <main id="view-export" class="hidden p-3.5 space-y-3.5 flex-1">
+
+      <!-- 1. Department-Separated Styled Excel Export Card -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <h2 id="exp-card-title" class="text-sm font-extrabold text-slate-900">分部门独立 Excel 报表 (.xlsx)</h2>
+            <p id="exp-card-sub" class="text-xs text-slate-500 mt-0.5">每个部门独立工作表、带颜色色阶与公式，可直接发送 WhatsApp</p>
+          </div>
+          <span class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-extrabold shrink-0">.XLSX</span>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+          <label id="lbl-exp-dept" for="sel-export-dept" class="block text-xs font-bold text-slate-700">1. 单独导出指定部门报表 (单表)</label>
+          <div class="flex gap-2">
+            <select id="sel-export-dept" class="flex-1 h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
+              <option value="produce">蔬菜水果部 (Frutas y Verduras)</option>
+              <option value="meat_beef">牛肉部 (Carnicería - Res)</option>
+              <option value="meat_pork">猪肉部 (Carnicería - Cerdo)</option>
+              <option value="meat_chicken">鸡肉部 (Carnicería - Pollo)</option>
+              <option value="charcuteria">Charcutería部 (Charcutería)</option>
+            </select>
+            <button id="btn-export-single-dept" type="button"
+              class="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
+              <span id="ico-exp-single" class="w-4 h-4"></span>
+              <span id="lbl-exp-single">导出该部门</span>
+            </button>
+          </div>
+        </div>
+
+        <button id="btn-export-all-depts" type="button"
+          class="w-full h-12 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-[0.99] text-white font-bold text-xs px-4 flex items-center justify-center gap-2 shadow transition">
+          <span id="ico-exp-all" class="w-4 h-4 text-emerald-400"></span>
+          <span id="btn-export-all-lbl">一键导出全部有记录部门 (分工作表 .xlsx)</span>
+        </button>
+
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
+          <span id="lbl-demo-hint" class="text-[11px] text-slate-500">想先测试 Excel 色阶效果？</span>
+          <button id="btn-load-demo" type="button"
+            class="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition">
+            填充各部门演示数据
+          </button>
+        </div>
+      </section>
+
+      <!-- 2. Saved Custom Items Dictionary Management -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 id="dict-card-title" class="text-sm font-extrabold text-slate-900">已保存商品词条库</h2>
+            <p id="dict-card-sub" class="text-xs text-slate-500 mt-0.5">称重过一次的新商品会自动保存在这里，可改名或改模板</p>
+          </div>
+          <span id="dict-count-badge" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
+        </div>
+
+        <div id="dict-items-list" class="divide-y divide-slate-100"></div>
+      </section>
+
+      <!-- 3. Custom SVG Icon Pack Preview & Home Screen Setup Guide -->
+      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 id="iconpack-title" class="text-sm font-extrabold text-slate-900">程序桌面图标与全套图标包预览</h2>
+            <p id="iconpack-sub" class="text-xs text-slate-500 mt-0.5">支持手机浏览器“添加到主屏幕”生成独立全屏 App 图标</p>
+          </div>
+        </div>
+
+        <!-- Home Screen App Icon Preview -->
+        <div class="p-3 rounded-xl bg-slate-900 text-white flex items-center gap-3.5">
+          <div id="preview-homescreen-icon" class="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shrink-0 border border-white/15"></div>
+          <div class="space-y-1">
+            <div class="text-xs font-extrabold text-emerald-400">桌面快捷图标 · 收货称重 / Recepción</div>
+            <p id="iconpack-guide" class="text-[11px] text-slate-300 leading-relaxed">
+              iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“添加到主屏幕/安装应用”。
+            </p>
+          </div>
+        </div>
+
+        <!-- 5 Department Icons Grid -->
+        <div>
+          <div id="iconpack-dept-lbl" class="text-xs font-bold text-slate-700 mb-2">部门与子类专属图标 (5项)</div>
+          <div id="preview-dept-icons" class="grid grid-cols-5 gap-2"></div>
+        </div>
+
+        <!-- Action Button Icons Grid -->
+        <div>
+          <div id="iconpack-btn-lbl" class="text-xs font-bold text-slate-700 mb-2">功能按键矢量图标包 (14项)</div>
+          <div id="preview-action-icons" class="grid grid-cols-4 sm:grid-cols-5 gap-2"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Edit Item Modal -->
+    <div id="modal-edit-item" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
+      <div class="bg-white w-full max-w-[460px] rounded-2xl p-4 shadow-2xl space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h3 id="modal-edit-title" class="text-sm font-extrabold text-slate-900">编辑商品词条</h3>
+          <button id="btn-close-modal" type="button" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold">✕</button>
+        </div>
+        <input type="hidden" id="edit-item-id" />
+        <div>
+          <label id="lbl-edit-zh" class="block text-xs font-bold text-slate-600 mb-1">中文名称</label>
+          <input id="edit-item-zh" type="text" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
+        </div>
+        <div>
+          <label id="lbl-edit-es" class="block text-xs font-bold text-slate-600 mb-1">西语名称 (Español)</label>
+          <input id="edit-item-es" type="text" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
+        </div>
+        <div>
+          <label id="lbl-edit-tpl" class="block text-xs font-bold text-slate-600 mb-1">默认称重模板</label>
+          <select id="edit-item-tpl" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold bg-white">
+            <option value="A">模板A · 筐/箱称重</option>
+            <option value="B">模板B · 成对称重</option>
+            <option value="C">模板C · 多轮累加</option>
+            <option value="D">模板D · 直称净重</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-2">
+          <button id="btn-delete-item" type="button" class="h-11 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs">删除词条</button>
+          <button id="btn-save-item-edit" type="button" class="h-11 rounded-xl bg-emerald-600 text-white font-bold text-xs">保存修改</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    /***************************************************************************
+     * 1. CUSTOM VECTOR SVG ICON PACK (App Icon, 5 Departments, 14 Action Icons)
+     ***************************************************************************/
+    const SVG_ICONS = {
+      // Master App Icon (Scale + Crate + Fresh Checkmark)
+      appIcon: `
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+          <defs>
+            <linearGradient id="appBgGrad" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#059669"/>
+              <stop offset="100%" stop-color="#0f172a"/>
+            </linearGradient>
+          </defs>
+          <rect width="120" height="120" rx="28" fill="url(#appBgGrad)"/>
+          <!-- Top Scale Dial -->
+          <circle cx="60" cy="34" r="15" fill="#ecfdf5" stroke="#10b981" stroke-width="3.5"/>
+          <path d="M60 34L67 26" stroke="#0f172a" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="60" cy="34" r="2.5" fill="#059669"/>
+          <!-- Scale Neck & Platform -->
+          <rect x="55" y="49" width="10" height="9" rx="2" fill="#a7f3d0"/>
+          <rect x="24" y="58" width="72" height="7" rx="3.5" fill="#ffffff"/>
+          <!-- Produce / Goods Crate on Scale -->
+          <rect x="30" y="67" width="60" height="32" rx="7" fill="#fbbf24" stroke="#ffffff" stroke-width="2.5"/>
+          <line x1="32" y1="77" x2="88" y2="77" stroke="#d97706" stroke-width="2.5"/>
+          <line x1="32" y1="88" x2="88" y2="88" stroke="#d97706" stroke-width="2.5"/>
+          <!-- Verified Check Badge -->
+          <circle cx="88" cy="34" r="13" fill="#10b981" stroke="#0f172a" stroke-width="3"/>
+          <path d="M82.5 34L86.5 38L94 30" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      `,
+
+      // Department Icons (5 items)
+      dept_produce: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M12 7c2.5-3 6-3 7 0 1.5 4.5-2 11-7 13-5-2-8.5-8.5-7-13 1-3 4.5-3 7 0z"/>
+          <path d="M12 7c0-2.5 1.5-4 4-4"/>
+          <path d="M9 12c1.5 1 4.5 1 6 0"/>
+        </svg>
+      `,
+      dept_meat: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M19.5 12.5c0 4.5-4 7.5-9.5 7.5-3.5 0-6-2-6-5 0-4.5 4.5-11 10.5-11 3 0 5 2 5 5.5v3z"/>
+          <circle cx="14.5" cy="9.5" r="2"/>
+          <path d="M7.5 15.5c1.5 1 4 1 6 0"/>
+        </svg>
+      `,
+      dept_charcuteria: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M3 16l9-11 9 11H3z"/>
+          <path d="M3 16v3a1 1 0 001 1h16a1 1 0 001-1v-3"/>
+          <circle cx="10" cy="13" r="1.2" fill="currentColor"/>
+          <circle cx="15" cy="14" r="1" fill="currentColor"/>
+          <circle cx="12.5" cy="10.5" r="1" fill="currentColor"/>
+        </svg>
+      `,
+      sub_beef: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M5 4c-1 2.5 0 5 2.5 6M19 4c1 2.5 0 5-2.5 6"/>
+          <path d="M7.5 10h9l1.5 7.5a3 3 0 01-3 3.5H9a3 3 0 01-3-3.5L7.5 10z"/>
+          <circle cx="10" cy="16.5" r="0.8" fill="currentColor"/>
+          <circle cx="14" cy="16.5" r="0.8" fill="currentColor"/>
+        </svg>
+      `,
+      sub_pork: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <circle cx="12" cy="13" r="7.5"/>
+          <path d="M6.5 7.5L4.5 4.5l4 1M17.5 7.5l2-3-4 1"/>
+          <ellipse cx="12" cy="14.5" rx="3" ry="2.2"/>
+          <circle cx="10.8" cy="14.5" r="0.6" fill="currentColor"/>
+          <circle cx="13.2" cy="14.5" r="0.6" fill="currentColor"/>
+        </svg>
+      `,
+      sub_chicken: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M14.5 4.5a5.5 5.5 0 014.8 8.2L13 18l-3.5-3.5 5.3-6.3a5.5 5.5 0 01-.3-3.7z"/>
+          <path d="M9.5 14.5L5.5 18.5a1.5 1.5 0 11-2.1-2.1 1.5 1.5 0 11-2.1-2.1l4-4"/>
+        </svg>
+      `,
+
+      // Action & Button Icon Pack (14 items)
+      scale: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M12 3v3m0 0a5 5 0 100 10 5 5 0 000-10z"/>
+          <path d="M12 11l2.2-2.2"/>
+          <path d="M5 20h14l-1.5-4h-11L5 20z"/>
+        </svg>
+      `,
+      receipt: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/>
+          <line x1="9" y1="7" x2="15" y2="7"/>
+          <line x1="9" y1="11" x2="15" y2="11"/>
+          <line x1="9" y1="15" x2="12" y2="15"/>
+        </svg>
+      `,
+      excel: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <rect x="3" y="3" width="18" height="18" rx="3"/>
+          <line x1="3" y1="9" x2="21" y2="9"/>
+          <line x1="3" y1="15" x2="21" y2="15"/>
+          <line x1="9" y1="9" x2="9" y2="21"/>
+          <line x1="15" y1="9" x2="15" y2="21"/>
+        </svg>
+      `,
+      crate: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <rect x="3" y="6" width="18" height="13" rx="2.5"/>
+          <line x1="3" y1="10.5" x2="21" y2="10.5"/>
+          <line x1="3" y1="14.5" x2="21" y2="14.5"/>
+          <line x1="8" y1="6" x2="8" y2="19"/>
+          <line x1="16" y1="6" x2="16" y2="19"/>
+        </svg>
+      `,
+      plus: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <line x1="12" y1="5" x2="12" y2="19"/>
+          <line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+      `,
+      replenish: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M21 12a9 9 0 00-15.4-6.4L3 8"/>
+          <polyline points="3 3 3 8 8 8"/>
+          <line x1="12" y1="9" x2="12" y2="15"/>
+          <line x1="9" y1="12" x2="15" y2="12"/>
+        </svg>
+      `,
+      search: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <circle cx="11" cy="11" r="7"/>
+          <line x1="20" y1="20" x2="16.2" y2="16.2"/>
+        </svg>
+      `,
+      settings: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      `,
+      eyeOff: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+      `,
+      whatsapp: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/>
+        </svg>
+      `,
+      globe: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <path d="M12 3a14 14 0 010 18 14 14 0 010-18z"/>
+        </svg>
+      `,
+      trash: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+      `,
+      close: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      `,
+      checkSave: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      `
+    };
+
+    /**
+     * Generates a crisp 512x512 PNG data-URI from the SVG App Icon and attaches
+     * it to apple-touch-icon, favicon, and a dynamic Web App Manifest so both
+     * iOS Safari and Android Chrome install it with a real home-screen icon.
+     */
+    function installHomeScreenIconAndManifest() {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext('2d');
+
+        // Draw crisp rounded app background
+        const grad = ctx.createLinearGradient(0, 0, 512, 512);
+        grad.addColorStop(0, '#059669');
+        grad.addColorStop(1, '#0f172a');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 512, 512);
+
+        // Scale Dial
+        ctx.fillStyle = '#ecfdf5';
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 14;
+        ctx.beginPath();
+        ctx.arc(256, 146, 64, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Dial Needle
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 14;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(256, 146);
+        ctx.lineTo(286, 112);
+        ctx.stroke();
+
+        // Scale Neck & Platform
+        ctx.fillStyle = '#a7f3d0';
+        ctx.fillRect(236, 210, 40, 36);
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(104, 246, 304, 28, 14);
+        ctx.fill();
+
+        // Crate on Scale
+        ctx.fillStyle = '#fbbf24';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.roundRect(128, 284, 256, 138, 28);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 10;
+        ctx.beginPath();
+        ctx.moveTo(136, 330);
+        ctx.lineTo(376, 330);
+        ctx.moveTo(136, 376);
+        ctx.lineTo(376, 376);
+        ctx.stroke();
+
+        // Verified Check Badge
+        ctx.fillStyle = '#10b981';
+        ctx.strokeStyle = '#0f172a';
+        ctx.lineWidth = 12;
+        ctx.beginPath();
+        ctx.arc(376, 146, 54, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 13;
+        ctx.beginPath();
+        ctx.moveTo(352, 146);
+        ctx.lineTo(369, 163);
+        ctx.lineTo(402, 129);
+        ctx.stroke();
+
+        const pngDataUrl = canvas.toDataURL('image/png');
+        document.getElementById('apple-touch-icon-link').href = pngDataUrl;
+        document.getElementById('favicon-link').href = pngDataUrl;
+
+        const manifest = {
+          name: '收货称重 / Recepción',
+          short_name: '收货称重',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#0f172a',
+          theme_color: '#0f172a',
+          icons: [
+            { src: pngDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+          ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+      } catch (e) {
+        // Fallback silently if restricted
+      }
+    }
+
+    function mountStaticIcons() {
+      document.getElementById('header-app-logo').innerHTML = SVG_ICONS.appIcon;
+      document.getElementById('ico-lang-hdr').innerHTML = SVG_ICONS.globe;
+      document.getElementById('ico-tab-weigh').innerHTML = SVG_ICONS.scale;
+      document.getElementById('ico-tab-bill').innerHTML = SVG_ICONS.receipt;
+      document.getElementById('ico-tab-export').innerHTML = SVG_ICONS.excel;
+
+      document.getElementById('ico-clear-sup').innerHTML = SVG_ICONS.close;
+      document.getElementById('ico-dept-produce').innerHTML = SVG_ICONS.dept_produce;
+      document.getElementById('ico-dept-meat').innerHTML = SVG_ICONS.dept_meat;
+      document.getElementById('ico-dept-charcuteria').innerHTML = SVG_ICONS.dept_charcuteria;
+      document.getElementById('ico-sub-beef').innerHTML = SVG_ICONS.sub_beef;
+      document.getElementById('ico-sub-pork').innerHTML = SVG_ICONS.sub_pork;
+      document.getElementById('ico-sub-chicken').innerHTML = SVG_ICONS.sub_chicken;
+
+      document.getElementById('ico-rule-gear').innerHTML = SVG_ICONS.settings;
+      document.getElementById('ico-search-item').innerHTML = SVG_ICONS.search;
+      document.getElementById('ico-reset-item').innerHTML = SVG_ICONS.close;
+      document.getElementById('ico-save-entry').innerHTML = SVG_ICONS.checkSave;
+
+      document.getElementById('ico-hide-cost').innerHTML = SVG_ICONS.eyeOff;
+      document.getElementById('ico-copy-wa').innerHTML = SVG_ICONS.whatsapp;
+      document.getElementById('ico-xlsx-wa').innerHTML = SVG_ICONS.excel;
+      document.getElementById('ico-trash-bill').innerHTML = SVG_ICONS.trash;
+
+      document.getElementById('ico-exp-single').innerHTML = SVG_ICONS.excel;
+      document.getElementById('ico-exp-all').innerHTML = SVG_ICONS.excel;
+    }
+
+    /***************************************************************************
+     * 2. BILINGUAL DICTIONARY (中文 / Español)
+     ***************************************************************************/
+    const I18N = {
+      zh: {
+        hdrTitle: '收货称重台',
+        hdrSub: '无码商品 · 实时去皮与比对',
+        tabWeigh: '称重录入',
+        tabBill: '本车核对',
+        tabExport: '词条与Excel',
+        lblSupplier: '供应商名称 (选填)',
+        phSupplier: '输入供应商名称...',
+        lblDept: '收货部门',
+        deptProduce: '蔬菜水果',
+        deptMeat: '肉类部',
+        deptCharcuteria: 'Charcutería',
+        subBeef: '牛肉 (Res)',
+        subPork: '猪肉 (Cerdo)',
+        subChicken: '鸡肉 (Pollo)',
+        lblItem: '商品名称 (点选或输入新品)',
+        btnTempRule: '切换称重模板',
+        phItemName: '输入商品名称 (称重一次自动保存)...',
+        btnClearItem: '清空',
+        lblRuleHint: '选择当前商品使用的称重计算模板：',
+        tplNameA: '模板A · 筐/箱称重',
+        tplDescA: '多秤累加 + 混合扣筐 + 补斤',
+        tplNameB: '模板B · 成对称重',
+        tplDescB: '半边A + 半边B + 可选内脏',
+        tplNameC: '模板C · 多轮累加',
+        tplDescC: '地秤多轮重量相加',
+        tplNameD: '模板D · 直称净重',
+        tplDescD: '默认已去皮 · 可选临时扣筐',
+        resLblNet: '最终实收净重',
+        resLblAmount: '就地开单金额',
+        resRealCost: '真实进价',
+        btnSaveEntry: '保存并加入本车核对',
+        modeCrate: '按筐计价 ($/筐)',
+        modeKg: '按公斤计价 ($/kg)',
+        lblQuotedCrates: '报价筐数',
+        lblCratePrice: '单筐价 ($/筐)',
+        lblStdWeight: '每筐标准净重 (kg)',
+        lblExpectedNet: '应收总净重',
+        lblNominalUnit: '折算标称单价',
+        lblKgPrice: '公斤单价 ($/kg)',
+        lblGrossSec: '毛重称量 (支持多秤累加)',
+        btnAddScale: '再称一秤',
+        scaleIdx: '第 {n} 秤',
+        lblTareSec: '扣筐重 / 去皮 (支持不同筐混合)',
+        btnAddTare: '添加另一种筐',
+        crateCountPh: '筐数',
+        crateUnitPh: '单筐空重kg',
+        crateMismatch: '⚠️ 扣筐总数量 ({t}筐) 与报价筐数 ({q}筐) 不一致',
+        statusOkFull: '✓ 足秤 ({diff} kg) · 锁定整筐原价，超重不加价',
+        statusShort: '⚠️ 缺少 {short} kg，需供应商补足',
+        lblReplenish: '现场补货净重 (kg)',
+        lblShortAction: '仍缺 {rem} kg，未补齐结算方式：',
+        optPayFull: '照付整筐原价',
+        optDeductShort: '按标称单价折算扣款',
+        lblBeefNote: '磅秤已提前去皮 · 按“头”成对录入，支持每头独立单价',
+        cowTitle: '第 {n} 头牛',
+        lblHalfA: '半边 A (kg)',
+        lblHalfB: '半边 B (kg)',
+        lblCowPrice: '本头单价 ($/kg)',
+        lblCowSum: '整头重',
+        errHalfMissing: '⚠️ 第 {n} 头牛缺少另一半重量，请补全后再保存',
+        btnAddCow: '称下一头牛',
+        btnToggleOffal: '添加内脏 (按套计价)',
+        lblOffalSec: '牛内脏 (按套计费)',
+        lblOffalSets: '内脏套数',
+        lblOffalPrice: '单套价格 ($/套)',
+        lblPorkNote: '地秤整头称重 · 支持多轮过磅累加',
+        roundIdx: '第 {n} 轮',
+        btnAddRound: '称下一轮',
+        btnTogglePorkTare: '临时扣皮重 (推车/大槽)',
+        lblPorkTare: '推车/大槽皮重 (kg)',
+        btnTogglePorkHead: '记录总头数',
+        lblPorkHead: '总头数 (核算均重)',
+        lblAvgWeight: '单头均重',
+        lblCharcNote: '默认直接上秤 (已去皮) · 特殊情况可展开扣筐',
+        lblCharcPieces: '件数/条数 (选填)',
+        btnToggleCharcTare: '用筐称重（填写筐重）',
+        billCtrlLang: '账单显示语言:',
+        billHideCostTitle: '隐藏门店内部真实成本',
+        billHideCostSub: '亮屏给供应商看时建议开启',
+        rcptHeader: '现场收货核对单',
+        rcptSupLbl: '供应商',
+        rcptItemCount: '{n} 项',
+        rcptTotNet: '总实收净重',
+        rcptTotAmt: '就地开单总金额',
+        btnCopyWa: '复制 WhatsApp 摘要',
+        btnExportWa: '生成Excel发WhatsApp',
+        btnClearBill: '清空当前核对单',
+        emptyBill: '当前暂无核对商品，请先在“称重录入”中添加',
+        expCardTitle: '分部门独立 Excel 报表 (.xlsx)',
+        expCardSub: '每个部门独立工作表、带颜色色阶与公式，可直接发送 WhatsApp',
+        lblExpDept: '1. 单独导出指定部门报表 (单表)',
+        btnExportSingle: '导出该部门',
+        btnExportAll: '一键导出全部有记录部门 (分工作表 .xlsx)',
+        lblDemoHint: '想先测试 Excel 色阶效果？',
+        btnLoadDemo: '填充各部门演示数据',
+        dictCardTitle: '已保存商品词条库',
+        dictCardSub: '称重过一次的新商品会自动保存在这里，可改名或改模板',
+        iconpackTitle: '程序桌面图标与全套图标包预览',
+        iconpackSub: '支持手机浏览器“添加到主屏幕”生成独立全屏 App 图标',
+        iconpackGuide: 'iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“添加到主屏幕/安装应用”。',
+        iconpackDeptLbl: '部门与子类专属图标 (5项)',
+        iconpackBtnLbl: '功能按键矢量图标包 (14项)',
+        modalEditTitle: '编辑商品词条',
+        lblEditZh: '中文名称',
+        lblEditEs: '西语名称 (Español)',
+        lblEditTpl: '默认称重模板',
+        btnDeleteItem: '删除词条',
+        btnSaveItemEdit: '保存修改',
+        toastNeedName: '请输入或点选商品名称',
+        toastNeedWeight: '请填写有效的称重重量',
+        toastHalfMissing: '拦截：存在只填了半边的牛，请补齐另一半重量',
+        toastAdded: '已加入本车核对单',
+        toastNewItemSaved: '已加入核对单，并自动保存为常用词条',
+        toastCopied: '已复制对账摘要，可直接粘贴到 WhatsApp',
+        toastNoDataDept: '该部门暂无已录入的核对记录',
+        toastNoDataAll: '当前没有任何部门记录可导出',
+        toastExcelReady: 'Excel 报表已生成',
+        toastDemoLoaded: '已填充 5 个部门测试记录，请查看“本车核对”或直接导出 Excel',
+        presetNoCrate: '无筐',
+        presetHeavyCrate: '厚筐',
+        presetLightCrate: '薄筐',
+        presetWoodBox: '木箱',
+        presetChickenCrate: '鸡筐',
+        presetFoamBox: '泡沫箱'
+      },
+      es: {
+        hdrTitle: 'Recepción y Pesaje',
+        hdrSub: 'Sin código · Tara y control en vivo',
+        tabWeigh: 'Pesaje',
+        tabBill: 'Cuenta',
+        tabExport: 'Productos y Excel',
+        lblSupplier: 'Proveedor (Opcional)',
+        phSupplier: 'Nombre del proveedor...',
+        lblDept: 'Departamento',
+        deptProduce: 'Frutas/Verduras',
+        deptMeat: 'Carnicería',
+        deptCharcuteria: 'Charcutería',
+        subBeef: 'Res (牛肉)',
+        subPork: 'Cerdo (猪肉)',
+        subChicken: 'Pollo (鸡肉)',
+        lblItem: 'Producto (Tocar o escribir nuevo)',
+        btnTempRule: 'Cambiar Plantilla',
+        phItemName: 'Escribir producto (se guarda al pesar)...',
+        btnClearItem: 'Limpiar',
+        lblRuleHint: 'Elija la plantilla de cálculo para este producto:',
+        tplNameA: 'Plantilla A · Por Cesta/Caja',
+        tplDescA: 'Varias pesadas + Tara mixta + Reposición',
+        tplNameB: 'Plantilla B · Por Mitades',
+        tplDescB: 'Mitad A + Mitad B + Vísceras opcional',
+        tplNameC: 'Plantilla C · Varias Tandas',
+        tplDescC: 'Suma de pesadas en báscula de piso',
+        tplNameD: 'Plantilla D · Peso Neto Directo',
+        tplDescD: 'Tarado por defecto · Cesta opcional',
+        resLblNet: 'Peso Neto Final',
+        resLblAmount: 'Total a Facturar',
+        resRealCost: 'Costo real',
+        btnSaveEntry: 'Guardar y Agregar a Cuenta',
+        modeCrate: 'Por Cesta ($/Cesta)',
+        modeKg: 'Por Kilo ($/kg)',
+        lblQuotedCrates: 'Cant. Cestas',
+        lblCratePrice: 'Precio/Cesta ($)',
+        lblStdWeight: 'Peso Estándar/Cesta',
+        lblExpectedNet: 'Peso Esperado',
+        lblNominalUnit: 'Precio Nominal',
+        lblKgPrice: 'Precio por Kilo ($/kg)',
+        lblGrossSec: 'Peso Bruto (Suma de pesadas)',
+        btnAddScale: 'Otra Pesada',
+        scaleIdx: 'Pesada {n}',
+        lblTareSec: 'Tara de Cestas (Permite cestas mixtas)',
+        btnAddTare: 'Otro Tipo de Cesta',
+        crateCountPh: 'Cant.',
+        crateUnitPh: 'Tara c/u kg',
+        crateMismatch: '⚠️ Total cestas tara ({t}) ≠ cestas cotizadas ({q})',
+        statusOkFull: '✓ Peso completo ({diff} kg) · Precio fijo por cesta',
+        statusShort: '⚠️ Faltan {short} kg, proveedor debe reponer',
+        lblReplenish: 'Peso Reposición (kg)',
+        lblShortAction: 'Aún faltan {rem} kg, elegir cobro:',
+        optPayFull: 'Pagar cesta completa',
+        optDeductShort: 'Descontar faltante',
+        lblBeefNote: 'Báscula ya tarada · Ingresar por pares (Mitad A + B)',
+        cowTitle: 'Res #{n}',
+        lblHalfA: 'Mitad A (kg)',
+        lblHalfB: 'Mitad B (kg)',
+        lblCowPrice: 'Precio ($/kg)',
+        lblCowSum: 'Peso Res',
+        errHalfMissing: '⚠️ Falta la otra mitad en Res #{n}',
+        btnAddCow: 'Agregar Otra Res',
+        btnToggleOffal: 'Agregar Vísceras (Por juego)',
+        lblOffalSec: 'Vísceras (Por juego)',
+        lblOffalSets: 'Cant. Juegos',
+        lblOffalPrice: 'Precio/Juego ($)',
+        lblPorkNote: 'Báscula de piso · Acumulación por tandas',
+        roundIdx: 'Tanda {n}',
+        btnAddRound: 'Otra Tanda',
+        btnTogglePorkTare: 'Tara temporal (Carro/Tina)',
+        lblPorkTare: 'Peso Tara Carro/Tina (kg)',
+        btnTogglePorkHead: 'Registrar Cabezas',
+        lblPorkHead: 'Total Cabezas (Promedio)',
+        lblAvgWeight: 'Prom./Cabeza',
+        lblCharcNote: 'Directo a báscula (ya tarada) · Cesta opcional',
+        lblCharcPieces: 'Piezas / Barras (Opcional)',
+        btnToggleCharcTare: 'Pesar con Cesta (Tara)',
+        billCtrlLang: 'Idioma de cuenta:',
+        billHideCostTitle: 'Ocultar costo interno real',
+        billHideCostSub: 'Activar al mostrar pantalla al proveedor',
+        rcptHeader: 'Control de Recepción',
+        rcptSupLbl: 'Proveedor',
+        rcptItemCount: '{n} ítems',
+        rcptTotNet: 'Peso Neto Total',
+        rcptTotAmt: 'Total a Facturar',
+        btnCopyWa: 'Copiar Resumen WhatsApp',
+        btnExportWa: 'Excel para WhatsApp',
+        btnClearBill: 'Vaciar cuenta',
+        emptyBill: 'No hay productos en la cuenta aún',
+        expCardTitle: 'Reportes Excel por Departamento (.xlsx)',
+        expCardSub: 'Hojas separadas por departamento con escalas de color y fórmulas',
+        lblExpDept: '1. Exportar un solo departamento',
+        btnExportSingle: 'Exportar Dept.',
+        btnExportAll: 'Exportar Todos los Departamentos (.xlsx)',
+        lblDemoHint: '¿Probar colores y formato de Excel?',
+        btnLoadDemo: 'Cargar Datos Demo',
+        dictCardTitle: 'Productos Guardados',
+        dictCardSub: 'Los productos nuevos se guardan automáticamente tras pesarlos',
+        iconpackTitle: 'Ícono de App y Paquete de Íconos Vectoriales',
+        iconpackSub: 'Compatible con "Añadir a pantalla de inicio" en iOS y Android',
+        iconpackGuide: 'En iPhone Safari: Compartir → "Añadir a pantalla de inicio". En Android Chrome: Menú → "Instalar aplicación".',
+        iconpackDeptLbl: 'Íconos por Departamento (5)',
+        iconpackBtnLbl: 'Paquete de Íconos de Botones (14)',
+        modalEditTitle: 'Editar Producto',
+        lblEditZh: 'Nombre en Chino',
+        lblEditEs: 'Nombre en Español',
+        lblEditTpl: 'Plantilla por defecto',
+        btnDeleteItem: 'Eliminar',
+        btnSaveItemEdit: 'Guardar',
+        toastNeedName: 'Ingrese o seleccione el nombre del producto',
+        toastNeedWeight: 'Ingrese un peso válido mayor a 0',
+        toastHalfMissing: 'Bloqueado: Complete ambas mitades de la res',
+        toastAdded: 'Agregado a la cuenta',
+        toastNewItemSaved: 'Agregado y guardado en productos rápidos',
+        toastCopied: 'Resumen copiado para WhatsApp',
+        toastNoDataDept: 'No hay registros en este departamento',
+        toastNoDataAll: 'No hay registros para exportar',
+        toastExcelReady: 'Archivo Excel generado',
+        toastDemoLoaded: 'Datos de prueba cargados en los 5 departamentos',
+        presetNoCrate: 'Sin cesta',
+        presetHeavyCrate: 'Gruesa',
+        presetLightCrate: 'Ligera',
+        presetWoodBox: 'Madera',
+        presetChickenCrate: 'Cesta pollo',
+        presetFoamBox: 'Cava/Caja'
+      }
+    };
+
+    /***************************************************************************
+     * 3. APPLICATION STATE & DEFAULT ITEM DICTIONARY
+     ***************************************************************************/
+    const STORAGE_KEYS = {
+      ITEMS: 'rcv_v4_items',
+      RECORDS: 'rcv_v4_records',
+      SUPPLIERS: 'rcv_v4_suppliers',
+      LANG: 'rcv_v4_lang'
+    };
+
+    const DEFAULT_ITEMS = [
+      { id: 'i_tomate', zh: '番茄', es: 'Tomate', dept: 'produce', subDept: '', template: 'A', defaultMode: 'crate', usage: 10 },
+      { id: 'i_cebolla', zh: '洋葱', es: 'Cebolla', dept: 'produce', subDept: '', template: 'A', defaultMode: 'crate', usage: 8 },
+      { id: 'i_papa', zh: '土豆', es: 'Papa', dept: 'produce', subDept: '', template: 'A', defaultMode: 'crate', usage: 7 },
+      { id: 'i_platano', zh: '芭蕉', es: 'Plátano', dept: 'produce', subDept: '', template: 'A', defaultMode: 'crate', usage: 6 },
+      { id: 'i_res', zh: '整牛', es: 'Res entera', dept: 'meat', subDept: 'beef', template: 'B', defaultMode: 'kg', usage: 10 },
+      { id: 'i_cerdo', zh: '整猪', es: 'Cerdo entero', dept: 'meat', subDept: 'pork', template: 'C', defaultMode: 'kg', usage: 10 },
+      { id: 'i_pollo', zh: '整鸡', es: 'Pollo entero', dept: 'meat', subDept: 'chicken', template: 'A', defaultMode: 'kg', usage: 10 },
+      { id: 'i_alas', zh: '鸡翅', es: 'Alas de pollo', dept: 'meat', subDept: 'chicken', template: 'A', defaultMode: 'kg', usage: 8 },
+      { id: 'i_patas', zh: '鸡爪', es: 'Patas de pollo', dept: 'meat', subDept: 'chicken', template: 'A', defaultMode: 'kg', usage: 7 },
+      { id: 'i_pechuga', zh: '鸡胸', es: 'Pechuga', dept: 'meat', subDept: 'chicken', template: 'A', defaultMode: 'kg', usage: 7 },
+      { id: 'i_jamon', zh: '火腿', es: 'Jamón', dept: 'charcuteria', subDept: '', template: 'D', defaultMode: 'kg', usage: 10 },
+      { id: 'i_queso', zh: '奶酪', es: 'Queso', dept: 'charcuteria', subDept: '', template: 'D', defaultMode: 'kg', usage: 9 }
+    ];
+
+    function createBlankFormState(tpl = 'A', defaultMode = 'crate') {
+      return {
+        priceMode: defaultMode,
+        quotedCrates: '',
+        cratePrice: '',
+        stdWeight: '',
+        kgPrice: '',
+        grossScales: [''],
+        tareRows: [{ count: '', unitWeight: '' }],
+        replenishWeight: '',
+        shortageAction: 'full',
+        cows: [{ halfA: '', halfB: '', unitPrice: '' }],
+        hasOffal: false,
+        offalSets: '1',
+        offalPrice: '',
+        rounds: [''],
+        hasPorkTare: false,
+        porkTare: '',
+        hasPorkHead: false,
+        porkHeads: '',
+        charcScales: [''],
+        charcPieces: '',
+        hasCharcTare: false,
+        charcTareRows: [{ count: '', unitWeight: '' }]
+      };
+    }
+
+    const state = {
+      lang: localStorage.getItem(STORAGE_KEYS.LANG) || 'zh',
+      activeTab: 'weigh',
+      dept: 'produce',
+      subDept: 'beef',
+      supplier: '',
+      selectedItemId: null,
+      itemNameInput: '',
+      template: 'A',
+      form: createBlankFormState('A', 'crate'),
+      items: [],
+      records: [],
+      suppliers: [],
+      billLang: 'zh',
+      hideCost: false
+    };
+
+    function loadStorage() {
+      try {
+        const savedItems = JSON.parse(localStorage.getItem(STORAGE_KEYS.ITEMS));
+        state.items = Array.isArray(savedItems) && savedItems.length ? savedItems : [...DEFAULT_ITEMS];
+      } catch {
+        state.items = [...DEFAULT_ITEMS];
+      }
+      try {
+        const savedRecords = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECORDS));
+        state.records = Array.isArray(savedRecords) ? savedRecords : [];
+      } catch {
+        state.records = [];
+      }
+      try {
+        const savedSup = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIERS));
+        state.suppliers = Array.isArray(savedSup) ? savedSup : [];
+      } catch {
+        state.suppliers = [];
+      }
+    }
+
+    function saveStorage() {
+      localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(state.items));
+      localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(state.records));
+      localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(state.suppliers));
+      localStorage.setItem(STORAGE_KEYS.LANG, state.lang);
+    }
+
+    /***************************************************************************
+     * 4. HELPER & CALCULATION UTILITIES
+     ***************************************************************************/
+    function t(key, vars = {}) {
+      let str = (I18N[state.lang] && I18N[state.lang][key]) || I18N.zh[key] || key;
+      Object.entries(vars).forEach(([k, v]) => { str = str.replace(`{${k}}`, v); });
+      return str;
+    }
+
+    function num(v) {
+      const n = parseFloat(v);
+      return Number.isFinite(n) && n >= 0 ? n : 0;
+    }
+
+    function round2(n) { return Math.round((n + Number.EPSILON) * 100) / 100; }
+    function fmtMoney(n) { return '$' + round2(n).toFixed(2); }
+    function fmtKg(n) { return round2(n).toFixed(2).replace(/\.00$/, '.0'); }
+
+    function escapeHtml(str) {
+      return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const bg = type === 'error' ? 'bg-rose-600' : type === 'warn' ? 'bg-amber-600' : 'bg-slate-900 border border-emerald-500/40';
+      el.className = `${bg} text-white text-xs font-bold px-4 py-3 rounded-xl shadow-lg text-center transition-all duration-300`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => el.remove(), 300);
+      }, 2400);
+    }
+
+    function getDeptKey() {
+      return state.dept === 'meat' ? `meat_${state.subDept}` : state.dept;
+    }
+
+    function getDefaultTemplateForDept(dept, subDept) {
+      if (dept === 'produce') return { tpl: 'A', mode: 'crate' };
+      if (dept === 'charcuteria') return { tpl: 'D', mode: 'kg' };
+      if (subDept === 'beef') return { tpl: 'B', mode: 'kg' };
+      if (subDept === 'pork') return { tpl: 'C', mode: 'kg' };
+      return { tpl: 'A', mode: 'kg' };
+    }
+
+    function calculateCurrent() {
+      const f = state.form;
+      const tpl = state.template;
+
+      if (tpl === 'A') {
+        const grossTotal = round2(f.grossScales.reduce((s, v) => s + num(v), 0));
+        let tareTotal = 0;
+        let tareCratesCount = 0;
+        f.tareRows.forEach(r => {
+          const c = num(r.count);
+          const u = num(r.unitWeight);
+          tareCratesCount += c;
+          tareTotal += c * u;
+        });
+        tareTotal = round2(tareTotal);
+
+        const initialNet = Math.max(0, round2(grossTotal - tareTotal));
+        const replenish = num(f.replenishWeight);
+        const finalNet = round2(initialNet + replenish);
+
+        const quotedCrates = num(f.quotedCrates);
+        const cratePrice = num(f.cratePrice);
+        const stdWeight = num(f.stdWeight);
+        const expectedNet = round2(quotedCrates * stdWeight);
+        const nominalUnitPrice = stdWeight > 0 ? cratePrice / stdWeight : 0;
+
+        let billedAmount = 0;
+        let quotedAmount = 0;
+        let weightDiff = 0;
+        let initialShortage = 0;
+        let remainingShortage = 0;
+
+        if (f.priceMode === 'crate') {
+          quotedAmount = round2(quotedCrates * cratePrice);
+          weightDiff = expectedNet > 0 ? round2(finalNet - expectedNet) : 0;
+          initialShortage = expectedNet > 0 ? Math.max(0, round2(expectedNet - initialNet)) : 0;
+          remainingShortage = expectedNet > 0 ? Math.max(0, round2(expectedNet - finalNet)) : 0;
+
+          if (remainingShortage > 0 && f.shortageAction === 'deduct' && nominalUnitPrice > 0) {
+            billedAmount = round2(finalNet * nominalUnitPrice);
+          } else {
+            // Strict rule: full or slightly over (e.g. +0.5kg) never adds extra charge
+            billedAmount = quotedAmount;
+          }
+        } else {
+          const kp = num(f.kgPrice);
+          billedAmount = round2(finalNet * kp);
+          quotedAmount = billedAmount;
+        }
+
+        const realUnitCost = finalNet > 0 ? round2(billedAmount / finalNet) : 0;
+
+        return {
+          tpl: 'A', priceMode: f.priceMode, quotedCrates, cratePrice, stdWeight,
+          expectedNet, nominalUnitPrice, kgPrice: num(f.kgPrice), grossTotal, tareTotal,
+          tareCratesCount, initialNet, replenish, finalNet, weightDiff, initialShortage,
+          remainingShortage, billedAmount, quotedAmount, realUnitCost
+        };
+      }
+
+      if (tpl === 'B') {
+        let beefNet = 0;
+        let beefAmount = 0;
+        let validHeads = 0;
+        let hasHalfError = false;
+        let errorCowIndex = -1;
+
+        const cowDetails = f.cows.map((c, idx) => {
+          const a = num(c.halfA);
+          const b = num(c.halfB);
+          const p = num(c.unitPrice);
+          const headW = round2(a + b);
+          const headAmt = round2(headW * p);
+          if ((a > 0 && b === 0) || (b > 0 && a === 0)) {
+            hasHalfError = true;
+            if (errorCowIndex === -1) errorCowIndex = idx + 1;
+          }
+          if (a > 0 && b > 0) {
+            validHeads += 1;
+            beefNet += headW;
+            beefAmount += headAmt;
+          }
+          return { halfA: a, halfB: b, headW, unitPrice: p, headAmt };
+        });
+
+        beefNet = round2(beefNet);
+        beefAmount = round2(beefAmount);
+
+        const offalSets = f.hasOffal ? num(f.offalSets) : 0;
+        const offalPrice = f.hasOffal ? num(f.offalPrice) : 0;
+        const offalAmount = round2(offalSets * offalPrice);
+
+        const billedAmount = round2(beefAmount + offalAmount);
+        const realUnitCost = beefNet > 0 ? round2(beefAmount / beefNet) : 0;
+
+        return {
+          tpl: 'B', cowDetails, validHeads, hasHalfError, errorCowIndex, beefNet, beefAmount,
+          hasOffal: f.hasOffal, offalSets, offalPrice, offalAmount, finalNet: beefNet, billedAmount, realUnitCost
+        };
+      }
+
+      if (tpl === 'C') {
+        const grossTotal = round2(f.rounds.reduce((s, v) => s + num(v), 0));
+        const tare = f.hasPorkTare ? num(f.porkTare) : 0;
+        const finalNet = Math.max(0, round2(grossTotal - tare));
+        const kp = num(f.kgPrice);
+        const billedAmount = round2(finalNet * kp);
+        const heads = f.hasPorkHead ? num(f.porkHeads) : 0;
+        const avgHeadWeight = heads > 0 ? round2(finalNet / heads) : 0;
+
+        return {
+          tpl: 'C', rounds: f.rounds.map(num), grossTotal, tare, finalNet,
+          kgPrice: kp, heads, avgHeadWeight, billedAmount, realUnitCost: kp
+        };
+      }
+
+      const grossTotal = round2(f.charcScales.reduce((s, v) => s + num(v), 0));
+      let tareTotal = 0;
+      if (f.hasCharcTare) {
+        f.charcTareRows.forEach(r => { tareTotal += num(r.count) * num(r.unitWeight); });
+      }
+      tareTotal = round2(tareTotal);
+      const finalNet = Math.max(0, round2(grossTotal - tareTotal));
+      const kp = num(f.kgPrice);
+      const billedAmount = round2(finalNet * kp);
+      const pieces = num(f.charcPieces);
+
+      return {
+        tpl: 'D', grossTotal, tareTotal, hasCharcTare: f.hasCharcTare,
+        finalNet, kgPrice: kp, pieces, billedAmount, realUnitCost: kp
+      };
+    }
+
+    /***************************************************************************
+     * 5. UI RENDERING
+     ***************************************************************************/
+    function applyStaticTranslations() {
+      document.getElementById('hdr-title').textContent = t('hdrTitle');
+      document.getElementById('hdr-sub').textContent = t('hdrSub');
+      document.getElementById('tab-lbl-weigh').textContent = t('tabWeigh');
+      document.getElementById('tab-lbl-bill').textContent = t('tabBill');
+      document.getElementById('tab-lbl-export').textContent = t('tabExport');
+
+      const pillZh = document.getElementById('lang-pill-zh');
+      const pillEs = document.getElementById('lang-pill-es');
+      if (state.lang === 'zh') {
+        pillZh.className = 'text-emerald-400 font-extrabold';
+        pillEs.className = 'text-slate-400 font-semibold';
+      } else {
+        pillZh.className = 'text-slate-400 font-semibold';
+        pillEs.className = 'text-emerald-400 font-extrabold';
+      }
+
+      document.getElementById('lbl-supplier').textContent = t('lblSupplier');
+      document.getElementById('inp-supplier').placeholder = t('phSupplier');
+      document.getElementById('lbl-dept').textContent = t('lblDept');
+      document.getElementById('dept-lbl-produce').textContent = t('deptProduce');
+      document.getElementById('dept-lbl-meat').textContent = t('deptMeat');
+      document.getElementById('dept-lbl-charcuteria').textContent = t('deptCharcuteria');
+      document.getElementById('sub-lbl-beef').textContent = t('subBeef');
+      document.getElementById('sub-lbl-pork').textContent = t('subPork');
+      document.getElementById('sub-lbl-chicken').textContent = t('subChicken');
+      document.getElementById('lbl-item').textContent = t('lblItem');
+      document.getElementById('lbl-btn-rule').textContent = t('btnTempRule');
+      document.getElementById('inp-item-name').placeholder = t('phItemName');
+      document.getElementById('lbl-btn-clear').textContent = t('btnClearItem');
+      document.getElementById('lbl-rule-hint').textContent = t('lblRuleHint');
+      ['A', 'B', 'C', 'D'].forEach(k => {
+        document.getElementById(`tpl-name-${k}`).textContent = t(`tplName${k}`);
+        document.getElementById(`tpl-desc-${k}`).textContent = t(`tplDesc${k}`);
+      });
+      document.getElementById('res-lbl-net').textContent = t('resLblNet');
+      document.getElementById('res-lbl-amount').textContent = t('resLblAmount');
+      document.getElementById('btn-save-entry-lbl').textContent = t('btnSaveEntry');
+
+      document.getElementById('bill-ctrl-lang-lbl').textContent = t('billCtrlLang');
+      document.getElementById('bill-hide-cost-title').textContent = t('billHideCostTitle');
+      document.getElementById('bill-hide-cost-sub').textContent = t('billHideCostSub');
+      document.getElementById('rcpt-header').textContent = t('rcptHeader');
+      document.getElementById('rcpt-sup-lbl').textContent = t('rcptSupLbl');
+      document.getElementById('rcpt-tot-net-lbl').textContent = t('rcptTotNet');
+      document.getElementById('rcpt-tot-amt-lbl').textContent = t('rcptTotAmt');
+      document.getElementById('btn-copy-wa-lbl').textContent = t('btnCopyWa');
+      document.getElementById('btn-export-wa-lbl').textContent = t('btnExportWa');
+      document.getElementById('lbl-clear-bill').textContent = t('btnClearBill');
+
+      document.getElementById('exp-card-title').textContent = t('expCardTitle');
+      document.getElementById('exp-card-sub').textContent = t('expCardSub');
+      document.getElementById('lbl-exp-dept').textContent = t('lblExpDept');
+      document.getElementById('lbl-exp-single').textContent = t('btnExportSingle');
+      document.getElementById('btn-export-all-lbl').textContent = t('btnExportAll');
+      document.getElementById('lbl-demo-hint').textContent = t('lblDemoHint');
+      document.getElementById('btn-load-demo').textContent = t('btnLoadDemo');
+      document.getElementById('dict-card-title').textContent = t('dictCardTitle');
+      document.getElementById('dict-card-sub').textContent = t('dictCardSub');
+      document.getElementById('iconpack-title').textContent = t('iconpackTitle');
+      document.getElementById('iconpack-sub').textContent = t('iconpackSub');
+      document.getElementById('iconpack-guide').textContent = t('iconpackGuide');
+      document.getElementById('iconpack-dept-lbl').textContent = t('iconpackDeptLbl');
+      document.getElementById('iconpack-btn-lbl').textContent = t('iconpackBtnLbl');
+
+      document.getElementById('modal-edit-title').textContent = t('modalEditTitle');
+      document.getElementById('lbl-edit-zh').textContent = t('lblEditZh');
+      document.getElementById('lbl-edit-es').textContent = t('lblEditEs');
+      document.getElementById('lbl-edit-tpl').textContent = t('lblEditTpl');
+      document.getElementById('btn-delete-item').textContent = t('btnDeleteItem');
+      document.getElementById('btn-save-item-edit').textContent = t('btnSaveItemEdit');
+    }
+
+    function renderSuppliers() {
+      const dl = document.getElementById('supplier-datalist');
+      dl.innerHTML = state.suppliers.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
+
+      const bar = document.getElementById('recent-suppliers-bar');
+      if (state.suppliers.length === 0) {
+        bar.classList.add('hidden');
+      } else {
+        bar.classList.remove('hidden');
+        bar.innerHTML = state.suppliers.slice(0, 6).map(s => `
+          <button type="button" data-sup="${escapeHtml(s)}"
+            class="sup-chip shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${state.supplier === s ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+            ${escapeHtml(s)}
+          </button>
+        `).join('');
+      }
+      document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
+    }
+
+    function getItemDisplayName(item, langOverride = null) {
+      const l = langOverride || state.lang;
+      if (l === 'bi') {
+        if (item.zh && item.es && item.zh !== item.es) return `${item.zh} / ${item.es}`;
+        return item.zh || item.es || '';
+      }
+      if (l === 'es') return item.es || item.zh || '';
+      return item.zh || item.es || '';
+    }
+
+    function renderQuickItems() {
+      const grid = document.getElementById('quick-items-grid');
+      const query = state.itemNameInput.trim().toLowerCase();
+
+      const filtered = state.items
+        .filter(it => it.dept === state.dept && (state.dept !== 'meat' || it.subDept === state.subDept))
+        .filter(it => !query || state.selectedItemId === it.id || (it.zh && it.zh.toLowerCase().includes(query)) || (it.es && it.es.toLowerCase().includes(query)))
+        .sort((a, b) => (b.usage || 0) - (a.usage || 0));
+
+      grid.innerHTML = filtered.map(it => {
+        const active = state.selectedItemId === it.id;
+        return `
+          <button type="button" data-item-id="${it.id}"
+            class="quick-item-btn h-10 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200'}">
+            <span>${escapeHtml(getItemDisplayName(it))}</span>
+            <span class="text-[10px] opacity-75">[${it.template}]</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function renderDeptButtons() {
+      document.querySelectorAll('.dept-btn').forEach(btn => {
+        const d = btn.dataset.dept;
+        const active = d === state.dept;
+        btn.className = active
+          ? 'dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-emerald-600 text-white border-emerald-600 shadow-sm'
+          : 'dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50';
+      });
+
+      const subBar = document.getElementById('meat-sub-bar');
+      subBar.classList.toggle('hidden', state.dept !== 'meat');
+
+      const subColors = {
+        beef: 'bg-rose-700 text-white border-rose-700',
+        pork: 'bg-amber-700 text-white border-amber-700',
+        chicken: 'bg-amber-500 text-slate-950 border-amber-500'
+      };
+      document.querySelectorAll('.sub-btn').forEach(btn => {
+        const s = btn.dataset.sub;
+        const active = s === state.subDept;
+        btn.className = active
+          ? `sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 ${subColors[s]}`
+          : 'sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300 hover:bg-slate-50';
+      });
+
+      document.querySelectorAll('.tpl-switch-btn').forEach(btn => {
+        const active = btn.dataset.tpl === state.template;
+        btn.className = active
+          ? 'tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition bg-slate-900 text-white border-slate-900'
+          : 'tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+      });
+    }
+
+    /***************************************************************************
+     * 6. DYNAMIC WEIGHING FORM RENDERERS (With Custom Button SVG Icons)
+     ***************************************************************************/
+    function renderWeighingForm() {
+      const container = document.getElementById('weighing-form-container');
+      const f = state.form;
+
+      if (state.template === 'A') {
+        const isCrate = f.priceMode === 'crate';
+        const isChicken = state.dept === 'meat' && state.subDept === 'chicken';
+        const presets = isChicken
+          ? [
+              { label: `${t('presetChickenCrate')} 1.5kg`, w: 1.5 },
+              { label: `${t('presetFoamBox')} 0.8kg`, w: 0.8 },
+              { label: `${t('presetLightCrate')} 1.0kg`, w: 1.0 },
+              { label: `${t('presetNoCrate')} 0kg`, w: 0 }
+            ]
+          : [
+              { label: `${t('presetHeavyCrate')} 1.8kg`, w: 1.8 },
+              { label: `${t('presetLightCrate')} 1.2kg`, w: 1.2 },
+              { label: `${t('presetWoodBox')} 2.5kg`, w: 2.5 },
+              { label: `${t('presetNoCrate')} 0kg`, w: 0 }
+            ];
+
+        container.innerHTML = `
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+            <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <button type="button" data-amode="crate" class="amode-btn h-10 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+                <span class="w-4 h-4">${SVG_ICONS.crate}</span>
+                <span>${t('modeCrate')}</span>
+              </button>
+              <button type="button" data-amode="kg" class="amode-btn h-10 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+                <span class="w-4 h-4">${SVG_ICONS.scale}</span>
+                <span>${t('modeKg')}</span>
+              </button>
+            </div>
+
+            ${isCrate ? `
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblQuotedCrates')}</label>
+                  <input type="number" inputmode="numeric" data-bind="quotedCrates" value="${escapeHtml(f.quotedCrates)}" placeholder="0"
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-emerald-500 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblCratePrice')}</label>
+                  <input type="number" step="0.01" inputmode="decimal" data-bind="cratePrice" value="${escapeHtml(f.cratePrice)}" placeholder="30.00"
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-emerald-500 outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblStdWeight')}</label>
+                  <input type="number" step="0.1" inputmode="decimal" data-bind="stdWeight" value="${escapeHtml(f.stdWeight)}" placeholder="30"
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-emerald-500 outline-none" />
+                </div>
+              </div>
+              <div class="flex items-center justify-between bg-slate-50 px-3 py-2 rounded-xl border border-slate-200/70 text-xs">
+                <span class="text-slate-600 font-semibold">${t('lblExpectedNet')}: <strong id="a-expected-net" class="text-slate-900 tabular-nums">0.0 kg</strong></span>
+                <span class="text-slate-600 font-semibold">${t('lblNominalUnit')}: <strong id="a-nominal-unit" class="text-slate-900 tabular-nums">$0.00/kg</strong></span>
+              </div>
+            ` : `
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblKgPrice')}</label>
+                <input type="number" step="0.01" inputmode="decimal" data-bind="kgPrice" value="${escapeHtml(f.kgPrice)}" placeholder="0.00"
+                  class="w-full h-12 px-3.5 rounded-xl border border-slate-300 text-lg font-extrabold tabular-nums focus:border-emerald-500 outline-none" />
+              </div>
+            `}
+          </section>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 h-4 text-emerald-700">${SVG_ICONS.scale}</span>
+                <span class="text-xs font-bold text-slate-700">${t('lblGrossSec')}</span>
+              </div>
+              <span id="a-gross-sum" class="text-xs font-extrabold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md tabular-nums">0.0 kg</span>
+            </div>
+            <div class="space-y-2">
+              ${f.grossScales.map((val, idx) => `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-400 w-16 shrink-0">${t('scaleIdx', { n: idx + 1 })}</span>
+                  <div class="relative flex-1">
+                    <input type="number" step="0.05" inputmode="decimal" data-gross-idx="${idx}" value="${escapeHtml(val)}" placeholder="0.0"
+                      class="gross-inp w-full h-12 px-3.5 pr-10 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-emerald-500 outline-none" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">kg</span>
+                  </div>
+                  ${f.grossScales.length > 1 ? `
+                    <button type="button" data-del-gross="${idx}" class="del-gross-btn w-10 h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm shrink-0 flex items-center justify-center">
+                      <span class="w-4 h-4">${SVG_ICONS.close}</span>
+                    </button>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+            <button type="button" id="btn-add-gross"
+              class="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-500 text-slate-600 hover:text-emerald-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span class="w-4 h-4">${SVG_ICONS.plus}</span>
+              <span>${t('btnAddScale')}</span>
+            </button>
+          </section>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="w-4 h-4 text-amber-700">${SVG_ICONS.crate}</span>
+                <span class="text-xs font-bold text-slate-700">${t('lblTareSec')}</span>
+              </div>
+              <span id="a-tare-sum" class="text-xs font-extrabold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md tabular-nums">-0.0 kg</span>
+            </div>
+
+            <div class="flex flex-wrap gap-1.5">
+              ${presets.map(p => `
+                <button type="button" data-preset-tare="${p.w}"
+                  class="preset-tare-btn px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-200 text-[11px] font-bold transition">
+                  ${p.label}
+                </button>
+              `).join('')}
+            </div>
+
+            <div class="space-y-2">
+              ${f.tareRows.map((row, idx) => `
+                <div class="flex items-center gap-1.5">
+                  <input type="number" inputmode="numeric" data-tare-idx="${idx}" data-tare-field="count" value="${escapeHtml(row.count)}" placeholder="${t('crateCountPh')}"
+                    class="tare-inp w-20 h-12 px-2.5 rounded-xl border border-slate-300 text-sm font-extrabold text-center tabular-nums focus:border-amber-500 outline-none" />
+                  <span class="text-slate-400 font-bold text-xs">×</span>
+                  <div class="relative flex-1">
+                    <input type="number" step="0.05" inputmode="decimal" data-tare-idx="${idx}" data-tare-field="unitWeight" value="${escapeHtml(row.unitWeight)}" placeholder="${t('crateUnitPh')}"
+                      class="tare-inp w-full h-12 px-3 pr-8 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums focus:border-amber-500 outline-none" />
+                    <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-400">kg</span>
+                  </div>
+                  <span id="tare-row-sub-${idx}" class="text-xs font-bold text-slate-500 w-14 text-right tabular-nums">${fmtKg(num(row.count) * num(row.unitWeight))}kg</span>
+                  ${f.tareRows.length > 1 ? `
+                    <button type="button" data-del-tare="${idx}" class="del-tare-btn w-9 h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs shrink-0 flex items-center justify-center">
+                      <span class="w-3.5 h-3.5">${SVG_ICONS.close}</span>
+                    </button>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <button type="button" id="btn-add-tare"
+              class="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 hover:border-amber-500 text-slate-600 hover:text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span class="w-4 h-4">${SVG_ICONS.crate}</span>
+              <span>${t('btnAddTare')}</span>
+            </button>
+
+            <div id="a-crate-mismatch" class="hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold"></div>
+          </section>
+
+          <div id="a-status-box" class="hidden"></div>
+        `;
+      } else if (state.template === 'B') {
+        container.innerHTML = `
+          <div class="px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2">
+            <span class="w-4 h-4 shrink-0">${SVG_ICONS.sub_beef}</span>
+            <span>${t('lblBeefNote')}</span>
+          </div>
+
+          <div class="space-y-3">
+            ${f.cows.map((cow, idx) => `
+              <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
+                    ${t('cowTitle', { n: idx + 1 })}
+                  </span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-600">${t('lblCowSum')}: <strong id="cow-sum-${idx}" class="text-slate-900 tabular-nums">${fmtKg(num(cow.halfA) + num(cow.halfB))} kg</strong></span>
+                    ${f.cows.length > 1 ? `
+                      <button type="button" data-del-cow="${idx}" class="del-cow-btn w-8 h-8 rounded-lg bg-rose-50 text-rose-600 font-bold text-xs flex items-center justify-center">
+                        <span class="w-3.5 h-3.5">${SVG_ICONS.close}</span>
+                      </button>
+                    ` : ''}
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblHalfA')}</label>
+                    <input type="number" step="0.01" inputmode="decimal" data-cow-idx="${idx}" data-cow-field="halfA" value="${escapeHtml(cow.halfA)}" placeholder="0.0"
+                      class="cow-inp w-full h-12 px-2.5 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-rose-600 outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblHalfB')}</label>
+                    <input type="number" step="0.01" inputmode="decimal" data-cow-idx="${idx}" data-cow-field="halfB" value="${escapeHtml(cow.halfB)}" placeholder="0.0"
+                      class="cow-inp w-full h-12 px-2.5 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-rose-600 outline-none" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblCowPrice')}</label>
+                    <input type="number" step="0.01" inputmode="decimal" data-cow-idx="${idx}" data-cow-field="unitPrice" value="${escapeHtml(cow.unitPrice)}" placeholder="0.00"
+                      class="cow-inp w-full h-12 px-2.5 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-rose-600 outline-none" />
+                  </div>
+                </div>
+
+                <div id="cow-err-${idx}" class="hidden p-2 rounded-lg bg-rose-100 text-rose-800 text-xs font-bold">
+                  ${t('errHalfMissing', { n: idx + 1 })}
+                </div>
+              </section>
+            `).join('')}
+          </div>
+
+          <button type="button" id="btn-add-cow"
+            class="w-full h-12 rounded-xl border-2 border-dashed border-rose-300 hover:border-rose-500 bg-white text-rose-700 text-xs font-extrabold transition flex items-center justify-center gap-1.5">
+            <span class="w-4 h-4">${SVG_ICONS.plus}</span>
+            <span>${t('btnAddCow')}</span>
+          </button>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+            <button type="button" id="btn-toggle-offal"
+              class="w-full h-11 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasOffal ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+              <span class="w-4 h-4">${f.hasOffal ? SVG_ICONS.checkSave : SVG_ICONS.plus}</span>
+              <span>${f.hasOffal ? t('lblOffalSec') : t('btnToggleOffal')}</span>
+            </button>
+
+            ${f.hasOffal ? `
+              <div class="grid grid-cols-2 gap-2.5 pt-1">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblOffalSets')}</label>
+                  <input type="number" inputmode="numeric" data-bind="offalSets" value="${escapeHtml(f.offalSets)}" placeholder="1"
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums outline-none" />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblOffalPrice')}</label>
+                  <input type="number" step="0.01" inputmode="decimal" data-bind="offalPrice" value="${escapeHtml(f.offalPrice)}" placeholder="0.00"
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums outline-none" />
+                </div>
+              </div>
+            ` : ''}
+          </section>
+        `;
+      } else if (state.template === 'C') {
+        container.innerHTML = `
+          <div class="px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
+            <span class="w-4 h-4 shrink-0">${SVG_ICONS.sub_pork}</span>
+            <span>${t('lblPorkNote')}</span>
+          </div>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblKgPrice')}</label>
+              <input type="number" step="0.01" inputmode="decimal" data-bind="kgPrice" value="${escapeHtml(f.kgPrice)}" placeholder="0.00"
+                class="w-full h-12 px-3.5 rounded-xl border border-slate-300 text-lg font-extrabold tabular-nums focus:border-amber-600 outline-none" />
+            </div>
+
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              ${f.rounds.map((val, idx) => `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-500 w-16 shrink-0">${t('roundIdx', { n: idx + 1 })}</span>
+                  <div class="relative flex-1">
+                    <input type="number" step="0.1" inputmode="decimal" data-round-idx="${idx}" value="${escapeHtml(val)}" placeholder="0.0"
+                      class="round-inp w-full h-12 px-3.5 pr-10 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-amber-600 outline-none" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">kg</span>
+                  </div>
+                  ${f.rounds.length > 1 ? `
+                    <button type="button" data-del-round="${idx}" class="del-round-btn w-10 h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm shrink-0 flex items-center justify-center">
+                      <span class="w-4 h-4">${SVG_ICONS.close}</span>
+                    </button>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <button type="button" id="btn-add-round"
+              class="w-full h-11 rounded-xl border-2 border-dashed border-amber-300 hover:border-amber-500 text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span class="w-4 h-4">${SVG_ICONS.plus}</span>
+              <span>${t('btnAddRound')}</span>
+            </button>
+          </section>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" id="btn-toggle-pork-tare"
+                class="h-11 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                <span class="w-3.5 h-3.5 shrink-0">${SVG_ICONS.crate}</span>
+                <span>${t('btnTogglePorkTare')}</span>
+              </button>
+              <button type="button" id="btn-toggle-pork-head"
+                class="h-11 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkHead ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                <span class="w-3.5 h-3.5 shrink-0">${SVG_ICONS.plus}</span>
+                <span>${t('btnTogglePorkHead')}</span>
+              </button>
+            </div>
+
+            ${f.hasPorkTare ? `
+              <div class="pt-1">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblPorkTare')}</label>
+                <input type="number" step="0.1" inputmode="decimal" data-bind="porkTare" value="${escapeHtml(f.porkTare)}" placeholder="0.0"
+                  class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+              </div>
+            ` : ''}
+
+            ${f.hasPorkHead ? `
+              <div class="pt-1 flex items-end gap-3">
+                <div class="flex-1">
+                  <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblPorkHead')}</label>
+                  <input type="number" inputmode="numeric" data-bind="porkHeads" value="${escapeHtml(f.porkHeads)}" placeholder="0"
+                    class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+                </div>
+                <div class="h-11 px-3 rounded-xl bg-slate-100 flex items-center text-xs font-bold text-slate-700 tabular-nums">
+                  ${t('lblAvgWeight')}: <span id="c-avg-head" class="ml-1 text-slate-900">0.0 kg</span>
+                </div>
+              </div>
+            ` : ''}
+          </section>
+        `;
+      } else {
+        container.innerHTML = `
+          <div class="px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold flex items-center gap-2">
+            <span class="w-4 h-4 shrink-0">${SVG_ICONS.dept_charcuteria}</span>
+            <span>${t('lblCharcNote')}</span>
+          </div>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblKgPrice')}</label>
+                <input type="number" step="0.01" inputmode="decimal" data-bind="kgPrice" value="${escapeHtml(f.kgPrice)}" placeholder="0.00"
+                  class="w-full h-12 px-3.5 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-indigo-500 outline-none" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblCharcPieces')}</label>
+                <input type="number" inputmode="numeric" data-bind="charcPieces" value="${escapeHtml(f.charcPieces)}" placeholder="0"
+                  class="w-full h-12 px-3.5 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-indigo-500 outline-none" />
+              </div>
+            </div>
+
+            <div class="space-y-2 pt-1 border-t border-slate-100">
+              ${f.charcScales.map((val, idx) => `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-500 w-16 shrink-0">${t('scaleIdx', { n: idx + 1 })}</span>
+                  <div class="relative flex-1">
+                    <input type="number" step="0.05" inputmode="decimal" data-charc-idx="${idx}" value="${escapeHtml(val)}" placeholder="0.0"
+                      class="charc-inp w-full h-12 px-3.5 pr-10 rounded-xl border border-slate-300 text-base font-extrabold tabular-nums focus:border-indigo-500 outline-none" />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">kg</span>
+                  </div>
+                  ${f.charcScales.length > 1 ? `
+                    <button type="button" data-del-charc="${idx}" class="del-charc-btn w-10 h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm shrink-0 flex items-center justify-center">
+                      <span class="w-4 h-4">${SVG_ICONS.close}</span>
+                    </button>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+
+            <button type="button" id="btn-add-charc-scale"
+              class="w-full h-11 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-500 text-indigo-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span class="w-4 h-4">${SVG_ICONS.plus}</span>
+              <span>${t('btnAddScale')}</span>
+            </button>
+          </section>
+
+          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+            <button type="button" id="btn-toggle-charc-tare"
+              class="w-full h-11 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasCharcTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+              <span class="w-4 h-4">${SVG_ICONS.crate}</span>
+              <span>${f.hasCharcTare ? t('lblTareSec') : t('btnToggleCharcTare')}</span>
+            </button>
+
+            ${f.hasCharcTare ? `
+              <div class="space-y-2 pt-1">
+                ${f.charcTareRows.map((row, idx) => `
+                  <div class="flex items-center gap-1.5">
+                    <input type="number" inputmode="numeric" data-ctare-idx="${idx}" data-ctare-field="count" value="${escapeHtml(row.count)}" placeholder="${t('crateCountPh')}"
+                      class="ctare-inp w-20 h-11 px-2.5 rounded-xl border border-slate-300 text-sm font-extrabold text-center tabular-nums outline-none" />
+                    <span class="text-slate-400 font-bold text-xs">×</span>
+                    <div class="relative flex-1">
+                      <input type="number" step="0.05" inputmode="decimal" data-ctare-idx="${idx}" data-ctare-field="unitWeight" value="${escapeHtml(row.unitWeight)}" placeholder="${t('crateUnitPh')}"
+                        class="ctare-inp w-full h-11 px-3 pr-8 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+                      <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-400">kg</span>
+                    </div>
+                    ${f.charcTareRows.length > 1 ? `
+                      <button type="button" data-del-ctare="${idx}" class="del-ctare-btn w-9 h-11 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs shrink-0 flex items-center justify-center">
+                        <span class="w-3.5 h-3.5">${SVG_ICONS.close}</span>
+                      </button>
+                    ` : ''}
+                  </div>
+                `).join('')}
+                <button type="button" id="btn-add-ctare" class="w-full h-10 rounded-xl border border-dashed border-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center gap-1">
+                  <span class="w-3.5 h-3.5">${SVG_ICONS.plus}</span>
+                  <span>${t('btnAddTare')}</span>
+                </button>
+              </div>
+            ` : ''}
+          </section>
+        `;
+      }
+
+      bindFormEvents();
+      updateLiveCalculations();
+    }
+
+    function updateLiveCalculations() {
+      const calc = calculateCurrent();
+      document.getElementById('res-val-net').textContent = `${fmtKg(calc.finalNet)} kg`;
+      document.getElementById('res-val-amount').textContent = fmtMoney(calc.billedAmount);
+      document.getElementById('res-sub-cost').textContent = `${t('resRealCost')}: ${fmtMoney(calc.realUnitCost)}/kg`;
+
+      const diffEl = document.getElementById('res-sub-diff');
+      if (calc.tpl === 'A' && calc.priceMode === 'crate' && calc.expectedNet > 0 && calc.finalNet > 0) {
+        const sign = calc.weightDiff >= 0 ? '+' : '';
+        diffEl.textContent = `${sign}${fmtKg(calc.weightDiff)} kg vs ${fmtKg(calc.expectedNet)} kg`;
+        diffEl.className = calc.weightDiff >= 0
+          ? 'text-[11px] text-emerald-400 font-bold tabular-nums mt-0.5'
+          : 'text-[11px] text-rose-400 font-bold tabular-nums mt-0.5';
+      } else {
+        diffEl.textContent = '';
+      }
+
+      if (calc.tpl === 'A') {
+        const grossSumEl = document.getElementById('a-gross-sum');
+        if (grossSumEl) grossSumEl.textContent = `${fmtKg(calc.grossTotal)} kg`;
+        const tareSumEl = document.getElementById('a-tare-sum');
+        if (tareSumEl) tareSumEl.textContent = `-${fmtKg(calc.tareTotal)} kg`;
+
+        state.form.tareRows.forEach((r, idx) => {
+          const subEl = document.getElementById(`tare-row-sub-${idx}`);
+          if (subEl) subEl.textContent = `${fmtKg(num(r.count) * num(r.unitWeight))}kg`;
+        });
+
+        if (calc.priceMode === 'crate') {
+          const expEl = document.getElementById('a-expected-net');
+          const nomEl = document.getElementById('a-nominal-unit');
+          if (expEl) expEl.textContent = `${fmtKg(calc.expectedNet)} kg`;
+          if (nomEl) nomEl.textContent = `${fmtMoney(calc.nominalUnitPrice)}/kg`;
+
+          const mmEl = document.getElementById('a-crate-mismatch');
+          if (mmEl) {
+            if (calc.quotedCrates > 0 && calc.tareCratesCount > 0 && calc.tareCratesCount !== calc.quotedCrates) {
+              mmEl.textContent = t('crateMismatch', { t: calc.tareCratesCount, q: calc.quotedCrates });
+              mmEl.classList.remove('hidden');
+            } else {
+              mmEl.classList.add('hidden');
+            }
+          }
+
+          const statusBox = document.getElementById('a-status-box');
+          if (statusBox) {
+            if (calc.expectedNet > 0 && calc.grossTotal > 0) {
+              statusBox.classList.remove('hidden');
+              if (calc.initialShortage <= 0) {
+                const diffStr = calc.weightDiff >= 0 ? `+${fmtKg(calc.weightDiff)}` : fmtKg(calc.weightDiff);
+                statusBox.innerHTML = `
+                  <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-extrabold">
+                    ${t('statusOkFull', { diff: diffStr })}
+                  </div>
+                `;
+              } else {
+                const isReplenished = calc.remainingShortage <= 0;
+                const deductAmt = round2(calc.finalNet * calc.nominalUnitPrice);
+                statusBox.innerHTML = `
+                  <div class="p-3.5 rounded-2xl ${isReplenished ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} border space-y-2.5">
+                    <div class="text-xs font-extrabold ${isReplenished ? 'text-emerald-800' : 'text-rose-800'}">
+                      ${isReplenished
+                        ? t('statusOkFull', { diff: (calc.weightDiff >= 0 ? '+' : '') + fmtKg(calc.weightDiff) })
+                        : t('statusShort', { short: fmtKg(calc.initialShortage) })}
+                    </div>
+                    <div>
+                      <label class="flex items-center gap-1 text-[11px] font-bold text-slate-700 mb-1">
+                        <span class="w-3.5 h-3.5 text-emerald-700">${SVG_ICONS.replenish}</span>
+                        <span>${t('lblReplenish')}</span>
+                      </label>
+                      <input id="inp-replenish-live" type="number" step="0.05" inputmode="decimal" value="${escapeHtml(state.form.replenishWeight)}" placeholder="0.0"
+                        class="w-full h-11 px-3 rounded-xl border border-slate-300 bg-white text-sm font-extrabold tabular-nums outline-none" />
+                    </div>
+                    ${!isReplenished ? `
+                      <div class="pt-1 border-t border-rose-200/80 space-y-1.5">
+                        <div class="text-[11px] font-bold text-rose-800">${t('lblShortAction', { rem: fmtKg(calc.remainingShortage) })}</div>
+                        <div class="grid grid-cols-2 gap-1.5">
+                          <button type="button" data-sact="full" class="sact-btn py-2 px-2 rounded-xl text-[11px] font-extrabold border transition ${state.form.shortageAction === 'full' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}">
+                            ${t('optPayFull')} (${fmtMoney(calc.quotedAmount)})
+                          </button>
+                          <button type="button" data-sact="deduct" class="sact-btn py-2 px-2 rounded-xl text-[11px] font-extrabold border transition ${state.form.shortageAction === 'deduct' ? 'bg-rose-700 text-white border-rose-700' : 'bg-white text-slate-700 border-slate-300'}">
+                            ${t('optDeductShort')} (${fmtMoney(deductAmt)})
+                          </button>
+                        </div>
+                      </div>
+                    ` : ''}
+                  </div>
+                `;
+                const repInp = document.getElementById('inp-replenish-live');
+                if (repInp) {
+                  repInp.addEventListener('input', e => {
+                    state.form.replenishWeight = e.target.value;
+                    updateLiveCalculations();
+                  });
+                }
+                statusBox.querySelectorAll('.sact-btn').forEach(btn => {
+                  btn.addEventListener('click', () => {
+                    state.form.shortageAction = btn.dataset.sact;
+                    updateLiveCalculations();
+                  });
+                });
+              }
+            } else {
+              statusBox.classList.add('hidden');
+            }
+          }
+        }
+      } else if (calc.tpl === 'B') {
+        calc.cowDetails.forEach((c, idx) => {
+          const sumEl = document.getElementById(`cow-sum-${idx}`);
+          if (sumEl) sumEl.textContent = `${fmtKg(c.headW)} kg`;
+          const errEl = document.getElementById(`cow-err-${idx}`);
+          if (errEl) {
+            const halfMissing = (c.halfA > 0 && c.halfB === 0) || (c.halfB > 0 && c.halfA === 0);
+            errEl.classList.toggle('hidden', !halfMissing);
+          }
+        });
+      } else if (calc.tpl === 'C') {
+        const avgEl = document.getElementById('c-avg-head');
+        if (avgEl) avgEl.textContent = `${fmtKg(calc.avgHeadWeight)} kg`;
+      }
+    }
+
+    function bindFormEvents() {
+      const container = document.getElementById('weighing-form-container');
+
+      container.querySelectorAll('[data-bind]').forEach(inp => {
+        inp.addEventListener('input', e => {
+          state.form[inp.dataset.bind] = e.target.value;
+          updateLiveCalculations();
+        });
+      });
+
+      container.querySelectorAll('.amode-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.priceMode = btn.dataset.amode; renderWeighingForm(); });
+      });
+
+      container.querySelectorAll('.gross-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.grossScales[Number(inp.dataset.grossIdx)] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addGross = document.getElementById('btn-add-gross');
+      if (addGross) addGross.addEventListener('click', () => { state.form.grossScales.push(''); renderWeighingForm(); });
+
+      container.querySelectorAll('.del-gross-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.grossScales.splice(Number(btn.dataset.delGross), 1); renderWeighingForm(); });
+      });
+
+      container.querySelectorAll('.preset-tare-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const w = btn.dataset.presetTare;
+          const rows = state.form.tareRows;
+          const targetRow = rows[rows.length - 1];
+          targetRow.unitWeight = w;
+          if (Number(w) === 0 && !targetRow.count) targetRow.count = '0';
+          if (Number(w) > 0 && !targetRow.count && state.form.quotedCrates) targetRow.count = state.form.quotedCrates;
+          renderWeighingForm();
+        });
+      });
+
+      container.querySelectorAll('.tare-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.tareRows[Number(inp.dataset.tareIdx)][inp.dataset.tareField] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addTare = document.getElementById('btn-add-tare');
+      if (addTare) addTare.addEventListener('click', () => { state.form.tareRows.push({ count: '', unitWeight: '' }); renderWeighingForm(); });
+
+      container.querySelectorAll('.del-tare-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.tareRows.splice(Number(btn.dataset.delTare), 1); renderWeighingForm(); });
+      });
+
+      container.querySelectorAll('.cow-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.cows[Number(inp.dataset.cowIdx)][inp.dataset.cowField] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addCow = document.getElementById('btn-add-cow');
+      if (addCow) {
+        addCow.addEventListener('click', () => {
+          const prevPrice = state.form.cows[state.form.cows.length - 1]?.unitPrice || '';
+          state.form.cows.push({ halfA: '', halfB: '', unitPrice: prevPrice });
+          renderWeighingForm();
+        });
+      }
+
+      container.querySelectorAll('.del-cow-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.cows.splice(Number(btn.dataset.delCow), 1); renderWeighingForm(); });
+      });
+
+      const toggleOffal = document.getElementById('btn-toggle-offal');
+      if (toggleOffal) toggleOffal.addEventListener('click', () => { state.form.hasOffal = !state.form.hasOffal; renderWeighingForm(); });
+
+      container.querySelectorAll('.round-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.rounds[Number(inp.dataset.roundIdx)] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addRound = document.getElementById('btn-add-round');
+      if (addRound) addRound.addEventListener('click', () => { state.form.rounds.push(''); renderWeighingForm(); });
+
+      container.querySelectorAll('.del-round-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.rounds.splice(Number(btn.dataset.delRound), 1); renderWeighingForm(); });
+      });
+
+      const togglePorkTare = document.getElementById('btn-toggle-pork-tare');
+      if (togglePorkTare) togglePorkTare.addEventListener('click', () => { state.form.hasPorkTare = !state.form.hasPorkTare; renderWeighingForm(); });
+
+      const togglePorkHead = document.getElementById('btn-toggle-pork-head');
+      if (togglePorkHead) togglePorkHead.addEventListener('click', () => { state.form.hasPorkHead = !state.form.hasPorkHead; renderWeighingForm(); });
+
+      container.querySelectorAll('.charc-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.charcScales[Number(inp.dataset.charcIdx)] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addCharc = document.getElementById('btn-add-charc-scale');
+      if (addCharc) addCharc.addEventListener('click', () => { state.form.charcScales.push(''); renderWeighingForm(); });
+
+      container.querySelectorAll('.del-charc-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.charcScales.splice(Number(btn.dataset.delCharc), 1); renderWeighingForm(); });
+      });
+
+      const toggleCharcTare = document.getElementById('btn-toggle-charc-tare');
+      if (toggleCharcTare) toggleCharcTare.addEventListener('click', () => { state.form.hasCharcTare = !state.form.hasCharcTare; renderWeighingForm(); });
+
+      container.querySelectorAll('.ctare-inp').forEach(inp => {
+        inp.addEventListener('input', e => { state.form.charcTareRows[Number(inp.dataset.ctareIdx)][inp.dataset.ctareField] = e.target.value; updateLiveCalculations(); });
+      });
+
+      const addCtare = document.getElementById('btn-add-ctare');
+      if (addCtare) addCtare.addEventListener('click', () => { state.form.charcTareRows.push({ count: '', unitWeight: '' }); renderWeighingForm(); });
+
+      container.querySelectorAll('.del-ctare-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.form.charcTareRows.splice(Number(btn.dataset.delCtare), 1); renderWeighingForm(); });
+      });
+    }
+
+    /***************************************************************************
+     * 7. SAVE ENTRY, BILL VIEW, DICTIONARY & ICON PACK PREVIEW
+     ***************************************************************************/
+    function handleSaveEntry() {
+      const rawName = state.itemNameInput.trim();
+      if (!rawName) {
+        showToast(t('toastNeedName'), 'error');
+        document.getElementById('inp-item-name').focus();
+        return;
+      }
+
+      const calc = calculateCurrent();
+      if (calc.tpl === 'B' && calc.hasHalfError) {
+        showToast(t('toastHalfMissing'), 'error');
+        return;
+      }
+      if (calc.finalNet <= 0 && !(calc.tpl === 'B' && calc.offalAmount > 0)) {
+        showToast(t('toastNeedWeight'), 'error');
+        return;
+      }
+
+      let itemObj = state.items.find(i => i.id === state.selectedItemId);
+      let isNewlySaved = false;
+
+      if (!itemObj) {
+        itemObj = state.items.find(i =>
+          i.dept === state.dept &&
+          (state.dept !== 'meat' || i.subDept === state.subDept) &&
+          ((i.zh && i.zh.toLowerCase() === rawName.toLowerCase()) || (i.es && i.es.toLowerCase() === rawName.toLowerCase()))
+        );
+      }
+
+      if (itemObj) {
+        itemObj.usage = (itemObj.usage || 0) + 1;
+        itemObj.template = state.template;
+        if (state.template === 'A') itemObj.defaultMode = state.form.priceMode;
+      } else {
+        itemObj = {
+          id: 'item_' + Date.now(),
+          zh: rawName,
+          es: rawName,
+          dept: state.dept,
+          subDept: state.dept === 'meat' ? state.subDept : '',
+          template: state.template,
+          defaultMode: state.template === 'A' ? state.form.priceMode : 'kg',
+          usage: 1
+        };
+        state.items.push(itemObj);
+        isNewlySaved = true;
+      }
+
+      const sup = state.supplier.trim();
+      if (sup && !state.suppliers.includes(sup)) {
+        state.suppliers.unshift(sup);
+      }
+
+      const now = new Date();
+      const record = {
+        id: 'rec_' + Date.now(),
+        date: now.toISOString().slice(0, 10),
+        time: now.toTimeString().slice(0, 5),
+        supplier: sup || '—',
+        deptKey: getDeptKey(),
+        itemZh: itemObj.zh,
+        itemEs: itemObj.es,
+        template: state.template,
+        calc: JSON.parse(JSON.stringify(calc))
+      };
+
+      state.records.push(record);
+      saveStorage();
+
+      state.selectedItemId = null;
+      state.itemNameInput = '';
+      document.getElementById('inp-item-name').value = '';
+      const def = getDefaultTemplateForDept(state.dept, state.subDept);
+      state.template = def.tpl;
+      state.form = createBlankFormState(def.tpl, def.mode);
+
+      renderSuppliers();
+      renderDeptButtons();
+      renderQuickItems();
+      renderWeighingForm();
+      updateBillBadge();
+
+      showToast(isNewlySaved ? t('toastNewItemSaved') : t('toastAdded'), 'success');
+    }
+
+    function updateBillBadge() {
+      const badge = document.getElementById('badge-bill-count');
+      if (state.records.length > 0) {
+        badge.textContent = state.records.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+
+    function formatRecordSummary(rec, langMode) {
+      const c = rec.calc;
+      const name = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, langMode);
+      let detail = '';
+
+      if (c.tpl === 'A') {
+        if (c.priceMode === 'crate') {
+          const crateTxt = langMode === 'es' ? `${c.quotedCrates} cestas × ${fmtMoney(c.cratePrice)}` : `${c.quotedCrates}筐 × ${fmtMoney(c.cratePrice)}`;
+          const netTxt = langMode === 'es' ? `Neto ${fmtKg(c.finalNet)}kg (Tara ${fmtKg(c.tareTotal)}kg)` : `实收 ${fmtKg(c.finalNet)}kg (扣筐 ${fmtKg(c.tareTotal)}kg)`;
+          detail = `${crateTxt} · ${netTxt}`;
+        } else {
+          detail = `${fmtKg(c.finalNet)}kg × ${fmtMoney(c.kgPrice)}/kg`;
+        }
+      } else if (c.tpl === 'B') {
+        const headsTxt = langMode === 'es' ? `${c.validHeads} reses (${fmtKg(c.beefNet)}kg)` : `${c.validHeads}头牛 (${fmtKg(c.beefNet)}kg)`;
+        const offalTxt = c.hasOffal && c.offalSets > 0
+          ? (langMode === 'es' ? ` + ${c.offalSets} jgo. vísceras` : ` + ${c.offalSets}套内脏`)
+          : '';
+        detail = headsTxt + offalTxt;
+      } else if (c.tpl === 'C') {
+        const roundsTxt = langMode === 'es' ? `${c.rounds.length} tandas` : `${c.rounds.length}轮`;
+        detail = `${roundsTxt} · ${fmtKg(c.finalNet)}kg × ${fmtMoney(c.kgPrice)}/kg`;
+      } else {
+        detail = `${fmtKg(c.finalNet)}kg × ${fmtMoney(c.kgPrice)}/kg`;
+      }
+
+      return { name, detail };
+    }
+
+    function renderBillView() {
+      document.getElementById('rcpt-date').textContent = new Date().toISOString().slice(0, 10);
+      const uniqueSups = [...new Set(state.records.map(r => r.supplier).filter(s => s && s !== '—'))];
+      document.getElementById('rcpt-sup-val').textContent = uniqueSups.length ? uniqueSups.join(', ') : (state.supplier.trim() || '—');
+      document.getElementById('rcpt-item-count').textContent = t('rcptItemCount', { n: state.records.length });
+
+      document.querySelectorAll('.bill-lang-btn').forEach(btn => {
+        const active = btn.dataset.billLang === state.billLang;
+        btn.className = active
+          ? 'bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm'
+          : 'bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600';
+      });
+
+      const sw = document.getElementById('btn-toggle-hide-cost');
+      const knob = document.getElementById('toggle-cost-knob');
+      if (state.hideCost) {
+        sw.className = 'w-12 h-7 rounded-full bg-emerald-600 p-1 transition relative shrink-0';
+        knob.style.transform = 'translateX(20px)';
+      } else {
+        sw.className = 'w-12 h-7 rounded-full bg-slate-300 p-1 transition relative shrink-0';
+        knob.style.transform = 'translateX(0px)';
+      }
+
+      const listEl = document.getElementById('bill-items-list');
+      if (state.records.length === 0) {
+        listEl.innerHTML = `<div class="p-8 text-center text-xs font-semibold text-slate-400">${t('emptyBill')}</div>`;
+        document.getElementById('rcpt-tot-net-val').textContent = '0.0 kg';
+        document.getElementById('rcpt-tot-amt-val').textContent = '$0.00';
+        return;
+      }
+
+      let totNet = 0;
+      let totAmt = 0;
+
+      listEl.innerHTML = state.records.map((rec, idx) => {
+        const { name, detail } = formatRecordSummary(rec, state.billLang);
+        totNet += rec.calc.finalNet;
+        totAmt += rec.calc.billedAmount;
+
+        return `
+          <div class="px-4 py-3 flex items-start justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs font-extrabold text-slate-400 tabular-nums">${idx + 1}.</span>
+                <span class="text-sm font-extrabold text-slate-900 truncate">${escapeHtml(name)}</span>
+              </div>
+              <div class="text-xs text-slate-600 mt-0.5 tabular-nums">${escapeHtml(detail)}</div>
+              ${!state.hideCost && rec.calc.realUnitCost > 0 ? `
+                <div class="inline-block mt-1 px-2 py-0.5 rounded bg-amber-50 border border-amber-200 text-[11px] font-bold text-amber-800 tabular-nums">
+                  ${state.billLang === 'es' ? 'Costo real' : '真实进价'}: ${fmtMoney(rec.calc.realUnitCost)}/kg
+                </div>
+              ` : ''}
+            </div>
+            <div class="text-right shrink-0 flex flex-col items-end gap-1">
+              <span class="text-sm font-extrabold text-slate-900 tabular-nums">${fmtMoney(rec.calc.billedAmount)}</span>
+              <button type="button" data-del-rec="${rec.id}" class="del-rec-btn text-[11px] font-bold text-rose-500 hover:text-rose-700">
+                ${state.lang === 'es' ? 'Quitar' : '删除'}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('rcpt-tot-net-val').textContent = `${fmtKg(totNet)} kg`;
+      document.getElementById('rcpt-tot-amt-val').textContent = fmtMoney(totAmt);
+
+      listEl.querySelectorAll('.del-rec-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.records = state.records.filter(r => r.id !== btn.dataset.delRec);
+          saveStorage();
+          updateBillBadge();
+          renderBillView();
+        });
+      });
+    }
+
+    function renderExportAndDictView() {
+      const listEl = document.getElementById('dict-items-list');
+      document.getElementById('dict-count-badge').textContent = state.items.length;
+
+      const deptBadges = {
+        produce: { zh: '蔬菜水果', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+        meat_beef: { zh: '牛肉', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
+        meat_pork: { zh: '猪肉', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
+        meat_chicken: { zh: '鸡肉', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
+        charcuteria: { zh: 'Charcutería', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+      };
+
+      listEl.innerHTML = state.items.map(it => {
+        const dk = it.dept === 'meat' ? `meat_${it.subDept}` : it.dept;
+        const b = deptBadges[dk] || deptBadges.produce;
+        return `
+          <div class="py-2.5 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(getItemDisplayName(it, 'bi'))}</div>
+              <div class="flex items-center gap-1.5 mt-1">
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${b.zh}</span>
+                <span class="text-[10px] font-bold text-slate-500">模板 ${it.template}</span>
+              </div>
+            </div>
+            <button type="button" data-edit-item="${it.id}"
+              class="edit-item-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0">
+              ${state.lang === 'es' ? 'Editar' : '编辑'}
+            </button>
+          </div>
+        `;
+      }).join('');
+
+      listEl.querySelectorAll('.edit-item-btn').forEach(btn => {
+        btn.addEventListener('click', () => openEditItemModal(btn.dataset.editItem));
+      });
+
+      // Render Icon Pack Showcase
+      document.getElementById('preview-homescreen-icon').innerHTML = SVG_ICONS.appIcon;
+
+      const deptPreviewItems = [
+        { label: '蔬菜水果', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', svg: SVG_ICONS.dept_produce },
+        { label: '牛肉 Res', color: 'bg-rose-50 text-rose-700 border-rose-200', svg: SVG_ICONS.sub_beef },
+        { label: '猪肉 Cerdo', color: 'bg-amber-50 text-amber-800 border-amber-200', svg: SVG_ICONS.sub_pork },
+        { label: '鸡肉 Pollo', color: 'bg-orange-50 text-orange-700 border-orange-200', svg: SVG_ICONS.sub_chicken },
+        { label: 'Charcutería', color: 'bg-indigo-50 text-indigo-700 border-indigo-200', svg: SVG_ICONS.dept_charcuteria }
+      ];
+      document.getElementById('preview-dept-icons').innerHTML = deptPreviewItems.map(d => `
+        <div class="p-2 rounded-xl border ${d.color} flex flex-col items-center justify-center gap-1 text-center">
+          <div class="w-6 h-6">${d.svg}</div>
+          <span class="text-[10px] font-extrabold leading-tight">${d.label}</span>
+        </div>
+      `).join('');
+
+      const actionPreviewItems = [
+        { label: '称重', svg: SVG_ICONS.scale },
+        { label: '扣筐/皮重', svg: SVG_ICONS.crate },
+        { label: '累加', svg: SVG_ICONS.plus },
+        { label: '补斤', svg: SVG_ICONS.replenish },
+        { label: '核对单', svg: SVG_ICONS.receipt },
+        { label: 'Excel', svg: SVG_ICONS.excel },
+        { label: 'WhatsApp', svg: SVG_ICONS.whatsapp },
+        { label: '隐藏成本', svg: SVG_ICONS.eyeOff },
+        { label: '双语切换', svg: SVG_ICONS.globe },
+        { label: '模板设置', svg: SVG_ICONS.settings },
+        { label: '搜索', svg: SVG_ICONS.search },
+        { label: '保存确认', svg: SVG_ICONS.checkSave },
+        { label: '删除', svg: SVG_ICONS.trash },
+        { label: '清空', svg: SVG_ICONS.close }
+      ];
+      document.getElementById('preview-action-icons').innerHTML = actionPreviewItems.map(a => `
+        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-700">
+          <div class="w-5 h-5">${a.svg}</div>
+          <span class="text-[10px] font-bold text-slate-600">${a.label}</span>
+        </div>
+      `).join('');
+    }
+
+    function openEditItemModal(itemId) {
+      const it = state.items.find(i => i.id === itemId);
+      if (!it) return;
+      document.getElementById('edit-item-id').value = it.id;
+      document.getElementById('edit-item-zh').value = it.zh || '';
+      document.getElementById('edit-item-es').value = it.es || '';
+      document.getElementById('edit-item-tpl').value = it.template || 'A';
+      document.getElementById('modal-edit-item').classList.remove('hidden');
+    }
+
+    /***************************************************************************
+     * 8. ONE-CLICK DEPARTMENT-SEPARATED COLOR-SCALED EXCEL (.XLSX) GENERATOR
+     ***************************************************************************/
+    const DEPT_EXCEL_THEMES = {
+      produce: {
+        sheetName: '蔬菜水果部',
+        title: '蔬菜水果部 · 收货比对与开单明细表 (Frutas y Verduras)',
+        primary: '1B5E20',
+        accentBg: 'E8F5E9',
+        accentText: '1B5E20',
+        border: 'A5D6A7'
+      },
+      meat_beef: {
+        sheetName: '牛肉部',
+        title: '牛肉部 · 收货比对与开单明细表 (Carnicería - Res)',
+        primary: '7F1D1D',
+        accentBg: 'FEF2F2',
+        accentText: '7F1D1D',
+        border: 'FECACA'
+      },
+      meat_pork: {
+        sheetName: '猪肉部',
+        title: '猪肉部 · 收货比对与开单明细表 (Carnicería - Cerdo)',
+        primary: '7C2D12',
+        accentBg: 'FFF7ED',
+        accentText: '7C2D12',
+        border: 'FED7AA'
+      },
+      meat_chicken: {
+        sheetName: '鸡肉部',
+        title: '鸡肉部 · 收货比对与开单明细表 (Carnicería - Pollo)',
+        primary: '92400E',
+        accentBg: 'FFFBEB',
+        accentText: '92400E',
+        border: 'FDE68A'
+      },
+      charcuteria: {
+        sheetName: 'Charcutería部',
+        title: 'Charcutería部 · 收货比对与开单明细表 (Charcutería)',
+        primary: '1E3A8A',
+        accentBg: 'EFF6FF',
+        accentText: '1E3A8A',
+        border: 'BFDBFE'
+      }
+    };
+
+    function getDiffColorFill(diff) {
+      if (diff < -1.0) return 'FCA5A5';
+      if (diff < 0)    return 'FECACA';
+      if (diff === 0)  return 'FEF9C3';
+      if (diff <= 0.6) return 'DCFCE7';
+      return '86EFAC';
+    }
+
+    function getBlueScaleFill(ratio) {
+      if (ratio >= 0.75) return '93C5FD';
+      if (ratio >= 0.45) return 'BFDBFE';
+      if (ratio >= 0.2)  return 'DBEAFE';
+      return 'EFF6FF';
+    }
+
+    function getAmberScaleFill(ratio) {
+      if (ratio >= 0.7) return 'FCD34D';
+      if (ratio >= 0.35) return 'FDE68A';
+      if (ratio > 0) return 'FEF3C7';
+      return 'FFFFFF';
+    }
+
+    function buildDepartmentSheet(workbook, deptKey, deptRecords) {
+      const theme = DEPT_EXCEL_THEMES[deptKey];
+      const ws = workbook.addWorksheet(theme.sheetName, {
+        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+      });
+
+      const isBeef = deptKey === 'meat_beef';
+      const isPork = deptKey === 'meat_pork';
+      const isCharc = deptKey === 'charcuteria';
+
+      let columns = [];
+      if (isBeef) {
+        columns = [
+          { header: '日期\nFecha', width: 13 },
+          { header: '供应商\nProveedor', width: 18 },
+          { header: '商品名称\nProducto', width: 20 },
+          { header: '牛头数\nCabezas', width: 10 },
+          { header: '半边A累加(kg)\nMitad A', width: 14 },
+          { header: '半边B累加(kg)\nMitad B', width: 14 },
+          { header: '牛肉实收净重(kg)\nPeso Neto Res', width: 16 },
+          { header: '内脏套数\nJgos. Vísceras', width: 13 },
+          { header: '内脏金额($)\nMonto Vísc.', width: 14 },
+          { header: '就地开单总额($)\nTotal Factura', width: 17 },
+          { header: '牛肉均价($/kg)\nCosto Res/kg', width: 15 },
+          { header: '单头明细备注\nDetalle', width: 28 }
+        ];
+      } else if (isPork) {
+        columns = [
+          { header: '日期\nFecha', width: 13 },
+          { header: '供应商\nProveedor', width: 18 },
+          { header: '商品名称\nProducto', width: 20 },
+          { header: '记录头数\nCabezas', width: 11 },
+          { header: '地秤累加重(kg)\nPeso Bruto', width: 15 },
+          { header: '临时皮重(kg)\nTara', width: 13 },
+          { header: '最终实收净重(kg)\nPeso Neto', width: 16 },
+          { header: '单头均重(kg)\nProm./Cab.', width: 13 },
+          { header: '单价($/kg)\nPrecio/kg', width: 13 },
+          { header: '就地开单总额($)\nTotal Factura', width: 17 },
+          { header: '多轮过磅明细\nTandas', width: 26 }
+        ];
+      } else if (isCharc) {
+        columns = [
+          { header: '日期\nFecha', width: 13 },
+          { header: '供应商\nProveedor', width: 18 },
+          { header: '商品名称\nProducto', width: 22 },
+          { header: '件数/条数\nPiezas', width: 11 },
+          { header: '上秤毛重(kg)\nPeso Bruto', width: 14 },
+          { header: '特殊扣筐(kg)\nTara', width: 13 },
+          { header: '最终实收净重(kg)\nPeso Neto', width: 16 },
+          { header: '单价($/kg)\nPrecio/kg', width: 13 },
+          { header: '就地开单总额($)\nTotal Factura', width: 17 },
+          { header: '门店真实单价($/kg)\nCosto Real/kg', width: 16 }
+        ];
+      } else {
+        columns = [
+          { header: '日期\nFecha', width: 13 },
+          { header: '供应商\nProveedor', width: 18 },
+          { header: '商品名称\nProducto', width: 22 },
+          { header: '计价方式\nModo', width: 12 },
+          { header: '筐数\nCestas', width: 9 },
+          { header: '标称总重(kg)\nPeso Esp.', width: 14 },
+          { header: '地磅毛重(kg)\nPeso Bruto', width: 14 },
+          { header: '扣筐皮重(kg)\nTara', width: 13 },
+          { header: '现场补斤(kg)\nReposición', width: 13 },
+          { header: '实收净重(kg)\nPeso Neto', width: 14 },
+          { header: '净重差额(kg)\nDiferencia', width: 14 },
+          { header: '比对状态\nEstado', width: 14 },
+          { header: '就地开单总额($)\nTotal Factura', width: 16 },
+          { header: '门店真实单价($/kg)\nCosto Real/kg', width: 16 }
+        ];
+      }
+
+      ws.columns = columns.map(c => ({ width: c.width }));
+      const colCount = columns.length;
+
+      ws.mergeCells(1, 1, 1, colCount);
+      const r1 = ws.getCell(1, 1);
+      r1.value = theme.title;
+      r1.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      r1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.primary } };
+      r1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+      ws.getRow(1).height = 32;
+
+      ws.mergeCells(2, 1, 2, colCount);
+      const r2 = ws.getCell(2, 1);
+      r2.value = `生成时间: ${new Date().toLocaleString()}   |   独立部门核算表 · 支持 WhatsApp 直接转发核对`;
+      r2.font = { name: 'Arial', size: 9.5, italic: true, color: { argb: 'FF' + theme.accentText } };
+      r2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.accentBg } };
+      r2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+      ws.getRow(2).height = 20;
+
+      const totalNetSum = round2(deptRecords.reduce((s, r) => s + r.calc.finalNet, 0));
+      const totalAmtSum = round2(deptRecords.reduce((s, r) => s + r.calc.billedAmount, 0));
+      ws.mergeCells(3, 1, 3, colCount);
+      const r3 = ws.getCell(3, 1);
+      r3.value = `【部门汇总 KPI】  记录笔数: ${deptRecords.length} 笔    |    实收总净重: ${fmtKg(totalNetSum)} kg    |    就地开单总金额: ${fmtMoney(totalAmtSum)}`;
+      r3.font = { name: 'Arial', size: 10.5, bold: true, color: { argb: 'FF0F172A' } };
+      r3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
+      r3.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+      ws.getRow(3).height = 24;
+
+      ws.mergeCells(4, 1, 4, colCount);
+      const r4 = ws.getCell(4, 1);
+      r4.value = '色阶图例说明：  [红→黄→绿] 净重差额(缺重红/持平黄/足秤超重绿)   |   [浅黄→琥珀] 扣筐皮重梯度   |   [浅蓝→深蓝] 开单金额梯度';
+      r4.font = { name: 'Arial', size: 8.5, color: { argb: 'FF475569' } };
+      r4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
+      r4.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+      ws.getRow(4).height = 19;
+
+      const headerRow = ws.getRow(5);
+      headerRow.height = 30;
+      columns.forEach((col, idx) => {
+        const cell = headerRow.getCell(idx + 1);
+        cell.value = col.header;
+        cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.primary } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        cell.border = {
+          top: { style: 'thin', color: { argb: 'FF' + theme.primary } },
+          bottom: { style: 'medium', color: { argb: 'FF' + theme.primary } },
+          left: { style: 'thin', color: { argb: 'FFFFFFFF' } },
+          right: { style: 'thin', color: { argb: 'FFFFFFFF' } }
+        };
+      });
+
+      const maxAmount = Math.max(...deptRecords.map(r => r.calc.billedAmount), 1);
+      const maxTare = Math.max(...deptRecords.map(r => r.calc.tareTotal || r.calc.tare || 0), 1);
+
+      const startRow = 6;
+      deptRecords.forEach((rec, i) => {
+        const rowIdx = startRow + i;
+        const row = ws.getRow(rowIdx);
+        row.height = 24;
+        const c = rec.calc;
+        const itemLabel = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, 'bi');
+        const zebraBg = i % 2 === 1 ? 'FFF8FAFC' : 'FFFFFFFF';
+
+        let rowValues = [];
+        if (isBeef) {
+          const sumA = round2((c.cowDetails || []).reduce((s, x) => s + x.halfA, 0));
+          const sumB = round2((c.cowDetails || []).reduce((s, x) => s + x.halfB, 0));
+          const detailStr = (c.cowDetails || []).map((x, k) => `#${k + 1}: ${x.halfA}+${x.halfB}kg @$${x.unitPrice}`).join('; ');
+          rowValues = [
+            rec.date, rec.supplier, itemLabel, c.validHeads || 0, sumA, sumB,
+            { formula: `E${rowIdx}+F${rowIdx}`, result: c.beefNet },
+            c.offalSets || 0, c.offalAmount || 0, c.billedAmount, c.realUnitCost, detailStr
+          ];
+        } else if (isPork) {
+          const roundsStr = (c.rounds || []).map((v, k) => `第${k + 1}轮:${v}kg`).join(' + ');
+          rowValues = [
+            rec.date, rec.supplier, itemLabel, c.heads || 0, c.grossTotal, c.tare || 0,
+            { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
+            c.avgHeadWeight || 0, c.kgPrice, c.billedAmount, roundsStr
+          ];
+        } else if (isCharc) {
+          rowValues = [
+            rec.date, rec.supplier, itemLabel, c.pieces || 0, c.grossTotal, c.tareTotal || 0,
+            { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
+            c.kgPrice, c.billedAmount, c.realUnitCost
+          ];
+        } else {
+          const modeLabel = c.priceMode === 'crate' ? '按筐/Cesta' : '按公斤/kg';
+          const expNet = c.priceMode === 'crate' ? c.expectedNet : c.finalNet;
+          const statusLabel = c.weightDiff < 0 ? '缺重/Falta' : (c.weightDiff > 0 ? '超重不加价' : '足秤/Exacto');
+          rowValues = [
+            rec.date, rec.supplier, itemLabel, modeLabel,
+            c.priceMode === 'crate' ? c.quotedCrates : 0,
+            expNet, c.grossTotal, c.tareTotal, c.replenish,
+            { formula: `G${rowIdx}-H${rowIdx}+I${rowIdx}`, result: c.finalNet },
+            { formula: `J${rowIdx}-F${rowIdx}`, result: c.weightDiff },
+            statusLabel, c.billedAmount, c.realUnitCost
+          ];
+        }
+
+        rowValues.forEach((val, colIdx) => {
+          const cell = row.getCell(colIdx + 1);
+          cell.value = val;
+          cell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF0F172A' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: zebraBg } };
+          cell.alignment = { vertical: 'middle', horizontal: colIdx <= 3 ? 'left' : 'right' };
+          cell.border = {
+            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
+            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+          };
+
+          if (!isBeef && !isPork && !isCharc) {
+            if ([5, 6, 7, 8, 9].includes(colIdx)) cell.numFmt = '0.0';
+            if (colIdx === 10) {
+              cell.numFmt = '+0.0;-0.0;0.0';
+              cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: c.weightDiff < 0 ? 'FF991B1B' : 'FF14532D' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getDiffColorFill(c.weightDiff) } };
+            }
+            if (colIdx === 11) {
+              cell.alignment = { vertical: 'middle', horizontal: 'center' };
+              cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: c.weightDiff < 0 ? 'FF991B1B' : 'FF166534' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: c.weightDiff < 0 ? 'FFFEE2E2' : 'FFDCFCE7' } };
+            }
+            if (colIdx === 7 && c.tareTotal > 0) {
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getAmberScaleFill(c.tareTotal / maxTare) } };
+            }
+            if (colIdx === 12) {
+              cell.numFmt = '$#,##0.00';
+              cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
+            }
+            if (colIdx === 13) cell.numFmt = '$#,##0.00';
+          } else if (isBeef) {
+            if ([4, 5, 6].includes(colIdx)) cell.numFmt = '0.0';
+            if ([8, 9, 10].includes(colIdx)) cell.numFmt = '$#,##0.00';
+            if (colIdx === 9) {
+              cell.font = { name: 'Arial', size: 9.5, bold: true };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
+            }
+          } else if (isPork) {
+            if ([4, 5, 6, 7].includes(colIdx)) cell.numFmt = '0.0';
+            if ([8, 9].includes(colIdx)) cell.numFmt = '$#,##0.00';
+            if (colIdx === 9) {
+              cell.font = { name: 'Arial', size: 9.5, bold: true };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
+            }
+          } else if (isCharc) {
+            if ([4, 5, 6].includes(colIdx)) cell.numFmt = '0.0';
+            if ([7, 8, 9].includes(colIdx)) cell.numFmt = '$#,##0.00';
+            if (colIdx === 8) {
+              cell.font = { name: 'Arial', size: 9.5, bold: true };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
+            }
+          }
+        });
+      });
+
+      const endRow = startRow + deptRecords.length - 1;
+      const totRowIdx = endRow + 1;
+      const totRow = ws.getRow(totRowIdx);
+      totRow.height = 26;
+
+      for (let colIdx = 0; colIdx < colCount; colIdx++) {
+        const cell = totRow.getCell(colIdx + 1);
+        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF' + theme.accentText } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.accentBg } };
+        cell.border = {
+          top: { style: 'medium', color: { argb: 'FF' + theme.primary } },
+          bottom: { style: 'double', color: { argb: 'FF' + theme.primary } },
+          left: { style: 'thin', color: { argb: 'FF' + theme.border } },
+          right: { style: 'thin', color: { argb: 'FF' + theme.border } }
+        };
+
+        if (colIdx === 0) {
+          cell.value = '合计 / TOTAL';
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+        } else {
+          const colLetter = ws.getColumn(colIdx + 1).letter;
+          if (!isBeef && !isPork && !isCharc) {
+            if ([4, 5, 6, 7, 8, 9, 10].includes(colIdx)) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = colIdx === 4 ? '0' : (colIdx === 10 ? '+0.0;-0.0;0.0' : '0.0');
+            } else if (colIdx === 12) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = '$#,##0.00';
+            }
+          } else if (isBeef) {
+            if ([3, 4, 5, 6, 7].includes(colIdx)) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = (colIdx === 3 || colIdx === 7) ? '0' : '0.0';
+            } else if ([8, 9].includes(colIdx)) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = '$#,##0.00';
+            }
+          } else if (isPork) {
+            if ([3, 4, 5, 6].includes(colIdx)) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = colIdx === 3 ? '0' : '0.0';
+            } else if (colIdx === 9) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = '$#,##0.00';
+            }
+          } else if (isCharc) {
+            if ([3, 4, 5, 6].includes(colIdx)) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = colIdx === 3 ? '0' : '0.0';
+            } else if (colIdx === 8) {
+              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
+              cell.numFmt = '$#,##0.00';
+            }
+          }
+        }
+      }
+
+      ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 5 }];
+    }
+
+    async function exportExcelWorkbook(deptFilter = null) {
+      if (typeof ExcelJS === 'undefined') {
+        showToast('ExcelJS library not loaded', 'error');
+        return;
+      }
+
+      const deptOrder = ['produce', 'meat_beef', 'meat_pork', 'meat_chicken', 'charcuteria'];
+      const targetDepts = deptFilter ? [deptFilter] : deptOrder;
+      const wb = new ExcelJS.Workbook();
+      wb.creator = 'Receiving App';
+      wb.created = new Date();
+
+      let sheetsAdded = 0;
+      targetDepts.forEach(dk => {
+        const recs = state.records.filter(r => r.deptKey === dk);
+        if (recs.length > 0) {
+          buildDepartmentSheet(wb, dk, recs);
+          sheetsAdded++;
+        }
+      });
+
+      if (sheetsAdded === 0) {
+        showToast(deptFilter ? t('toastNoDataDept') : t('toastNoDataAll'), 'warn');
+        return;
+      }
+
+      const buffer = await wb.xlsx.writeBuffer();
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const fileName = deptFilter
+        ? `${DEPT_EXCEL_THEMES[deptFilter].sheetName}_收货比对_${todayStr}.xlsx`
+        : `各部门独立收货比对报表_${todayStr}.xlsx`;
+
+      const blob = new Blob([buffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+
+      const file = new File([blob], fileName, { type: blob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: fileName });
+          showToast(t('toastExcelReady'), 'success');
+          return;
+        } catch (err) {
+          // Fall back to download
+        }
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast(t('toastExcelReady'), 'success');
+    }
+
+    function loadDemoRecordsForTesting() {
+      const today = new Date().toISOString().slice(0, 10);
+      const demo = [
+        {
+          id: 'demo_1', date: today, time: '08:15', supplier: '—', deptKey: 'produce',
+          itemZh: '番茄', itemEs: 'Tomate', template: 'A',
+          calc: {
+            tpl: 'A', priceMode: 'crate', quotedCrates: 5, cratePrice: 30, stdWeight: 30,
+            expectedNet: 150, nominalUnitPrice: 1, grossTotal: 150, tareTotal: 7.8,
+            initialNet: 142.2, replenish: 8.0, finalNet: 150.2, weightDiff: 0.2,
+            initialShortage: 7.8, remainingShortage: 0, billedAmount: 150.0, quotedAmount: 150.0, realUnitCost: 1.00
+          }
+        },
+        {
+          id: 'demo_2', date: today, time: '08:25', supplier: '—', deptKey: 'produce',
+          itemZh: '洋葱', itemEs: 'Cebolla', template: 'A',
+          calc: {
+            tpl: 'A', priceMode: 'crate', quotedCrates: 4, cratePrice: 25, stdWeight: 25,
+            expectedNet: 100, nominalUnitPrice: 1, grossTotal: 101.2, tareTotal: 4.8,
+            initialNet: 96.4, replenish: 0, finalNet: 96.4, weightDiff: -3.6,
+            initialShortage: 3.6, remainingShortage: 3.6, billedAmount: 96.4, quotedAmount: 100.0, realUnitCost: 1.00
+          }
+        },
+        {
+          id: 'demo_3', date: today, time: '09:00', supplier: '—', deptKey: 'meat_beef',
+          itemZh: '整牛', itemEs: 'Res entera', template: 'B',
+          calc: {
+            tpl: 'B', validHeads: 2, beefNet: 512.4, beefAmount: 2280.18,
+            cowDetails: [
+              { halfA: 132.5, halfB: 131.0, headW: 263.5, unitPrice: 4.50, headAmt: 1185.75 },
+              { halfA: 124.2, halfB: 124.7, headW: 248.9, unitPrice: 4.40, headAmt: 1095.16 }
+            ],
+            hasOffal: true, offalSets: 2, offalPrice: 35, offalAmount: 70,
+            finalNet: 512.4, billedAmount: 2350.18, realUnitCost: 4.45
+          }
+        },
+        {
+          id: 'demo_4', date: today, time: '09:30', supplier: '—', deptKey: 'meat_pork',
+          itemZh: '整猪', itemEs: 'Cerdo entero', template: 'C',
+          calc: {
+            tpl: 'C', rounds: [185.5, 192.0], grossTotal: 377.5, tare: 0,
+            finalNet: 377.5, kgPrice: 3.20, heads: 4, avgHeadWeight: 94.38,
+            billedAmount: 1208.00, realUnitCost: 3.20
+          }
+        },
+        {
+          id: 'demo_5', date: today, time: '10:00', supplier: '—', deptKey: 'meat_chicken',
+          itemZh: '鸡胸', itemEs: 'Pechuga', template: 'A',
+          calc: {
+            tpl: 'A', priceMode: 'kg', quotedCrates: 0, cratePrice: 0, stdWeight: 0,
+            expectedNet: 0, nominalUnitPrice: 0, kgPrice: 3.80, grossTotal: 64.5, tareTotal: 4.5,
+            initialNet: 60.0, replenish: 0, finalNet: 60.0, weightDiff: 0,
+            initialShortage: 0, remainingShortage: 0, billedAmount: 228.00, quotedAmount: 228.00, realUnitCost: 3.80
+          }
+        },
+        {
+          id: 'demo_6', date: today, time: '10:20', supplier: '—', deptKey: 'charcuteria',
+          itemZh: '火腿', itemEs: 'Jamón', template: 'D',
+          calc: {
+            tpl: 'D', grossTotal: 28.4, tareTotal: 0, hasCharcTare: false,
+            finalNet: 28.4, kgPrice: 6.50, pieces: 6, billedAmount: 184.60, realUnitCost: 6.50
+          }
+        }
+      ];
+
+      state.records = [...state.records, ...demo];
+      saveStorage();
+      updateBillBadge();
+      showToast(t('toastDemoLoaded'), 'success');
+    }
+
+    /***************************************************************************
+     * 9. INITIALIZATION & GLOBAL EVENT LISTENERS
+     ***************************************************************************/
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        const active = btn.dataset.tab === tabName;
+        btn.className = active
+          ? 'nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow'
+          : 'nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white';
+      });
+
+      document.getElementById('view-weigh').classList.toggle('hidden', tabName !== 'weigh');
+      document.getElementById('view-bill').classList.toggle('hidden', tabName !== 'bill');
+      document.getElementById('view-export').classList.toggle('hidden', tabName !== 'export');
+
+      if (tabName === 'bill') renderBillView();
+      if (tabName === 'export') renderExportAndDictView();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      installHomeScreenIconAndManifest();
+      mountStaticIcons();
+      loadStorage();
+      applyStaticTranslations();
+      renderSuppliers();
+      renderDeptButtons();
+      renderQuickItems();
+      renderWeighingForm();
+      updateBillBadge();
+
+      document.getElementById('btn-lang-toggle').addEventListener('click', () => {
+        state.lang = state.lang === 'zh' ? 'es' : 'zh';
+        state.billLang = state.lang;
+        saveStorage();
+        applyStaticTranslations();
+        renderDeptButtons();
+        renderQuickItems();
+        renderWeighingForm();
+        if (state.activeTab === 'bill') renderBillView();
+        if (state.activeTab === 'export') renderExportAndDictView();
+      });
+
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      const supInp = document.getElementById('inp-supplier');
+      supInp.addEventListener('input', e => {
+        state.supplier = e.target.value;
+        document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
+      });
+      document.getElementById('btn-clear-supplier').addEventListener('click', () => {
+        state.supplier = '';
+        supInp.value = '';
+        renderSuppliers();
+      });
+      document.getElementById('recent-suppliers-bar').addEventListener('click', e => {
+        const chip = e.target.closest('.sup-chip');
+        if (!chip) return;
+        state.supplier = chip.dataset.sup;
+        supInp.value = state.supplier;
+        renderSuppliers();
+      });
+
+      document.querySelectorAll('.dept-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.dept = btn.dataset.dept;
+          state.selectedItemId = null;
+          state.itemNameInput = '';
+          document.getElementById('inp-item-name').value = '';
+          const def = getDefaultTemplateForDept(state.dept, state.subDept);
+          state.template = def.tpl;
+          state.form = createBlankFormState(def.tpl, def.mode);
+          renderDeptButtons();
+          renderQuickItems();
+          renderWeighingForm();
+        });
+      });
+
+      document.querySelectorAll('.sub-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.subDept = btn.dataset.sub;
+          state.selectedItemId = null;
+          state.itemNameInput = '';
+          document.getElementById('inp-item-name').value = '';
+          const def = getDefaultTemplateForDept('meat', state.subDept);
+          state.template = def.tpl;
+          state.form = createBlankFormState(def.tpl, def.mode);
+          renderDeptButtons();
+          renderQuickItems();
+          renderWeighingForm();
+        });
+      });
+
+      const itemInp = document.getElementById('inp-item-name');
+      itemInp.addEventListener('input', e => {
+        state.itemNameInput = e.target.value;
+        state.selectedItemId = null;
+        renderQuickItems();
+      });
+      document.getElementById('btn-clear-item').addEventListener('click', () => {
+        state.itemNameInput = '';
+        state.selectedItemId = null;
+        itemInp.value = '';
+        renderQuickItems();
+      });
+      document.getElementById('quick-items-grid').addEventListener('click', e => {
+        const btn = e.target.closest('.quick-item-btn');
+        if (!btn) return;
+        const it = state.items.find(i => i.id === btn.dataset.itemId);
+        if (!it) return;
+        state.selectedItemId = it.id;
+        state.itemNameInput = getItemDisplayName(it);
+        itemInp.value = state.itemNameInput;
+        state.template = it.template;
+        state.form = createBlankFormState(it.template, it.defaultMode || 'kg');
+        renderDeptButtons();
+        renderQuickItems();
+        renderWeighingForm();
+      });
+
+      document.getElementById('btn-temp-rule').addEventListener('click', () => {
+        document.getElementById('rule-drawer').classList.toggle('hidden');
+      });
+      document.querySelectorAll('.tpl-switch-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.template = btn.dataset.tpl;
+          state.form = createBlankFormState(state.template, state.template === 'A' && state.dept === 'produce' ? 'crate' : 'kg');
+          renderDeptButtons();
+          renderWeighingForm();
+        });
+      });
+
+      document.getElementById('btn-save-entry').addEventListener('click', handleSaveEntry);
+
+      document.querySelectorAll('.bill-lang-btn').forEach(btn => {
+        btn.addEventListener('click', () => { state.billLang = btn.dataset.billLang; renderBillView(); });
+      });
+      document.getElementById('btn-toggle-hide-cost').addEventListener('click', () => {
+        state.hideCost = !state.hideCost;
+        renderBillView();
+      });
+      document.getElementById('btn-copy-whatsapp').addEventListener('click', () => {
+        if (state.records.length === 0) {
+          showToast(t('emptyBill'), 'warn');
+          return;
+        }
+        const lines = [
+          `📋 ${t('rcptHeader')} (${new Date().toISOString().slice(0, 10)})`,
+          `${t('rcptSupLbl')}: ${document.getElementById('rcpt-sup-val').textContent}`,
+          '------------------------'
+        ];
+        let totAmt = 0;
+        let totNet = 0;
+        state.records.forEach((rec, i) => {
+          const { name, detail } = formatRecordSummary(rec, state.billLang);
+          lines.push(`${i + 1}. ${name} | ${detail} => ${fmtMoney(rec.calc.billedAmount)}`);
+          totAmt += rec.calc.billedAmount;
+          totNet += rec.calc.finalNet;
+        });
+        lines.push('------------------------');
+        lines.push(`${t('rcptTotNet')}: ${fmtKg(totNet)} kg`);
+        lines.push(`${t('rcptTotAmt')}: ${fmtMoney(totAmt)}`);
+
+        const text = lines.join('\n');
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast(t('toastCopied'), 'success');
+      });
+
+      document.getElementById('btn-export-bill-xlsx').addEventListener('click', () => exportExcelWorkbook(null));
+      document.getElementById('btn-clear-bill').addEventListener('click', () => {
+        state.records = [];
+        saveStorage();
+        updateBillBadge();
+        renderBillView();
+      });
+
+      document.getElementById('btn-export-single-dept').addEventListener('click', () => {
+        const dk = document.getElementById('sel-export-dept').value;
+        exportExcelWorkbook(dk);
+      });
+      document.getElementById('btn-export-all-depts').addEventListener('click', () => exportExcelWorkbook(null));
+      document.getElementById('btn-load-demo').addEventListener('click', loadDemoRecordsForTesting);
+
+      document.getElementById('btn-close-modal').addEventListener('click', () => {
+        document.getElementById('modal-edit-item').classList.add('hidden');
+      });
+      document.getElementById('btn-save-item-edit').addEventListener('click', () => {
+        const id = document.getElementById('edit-item-id').value;
+        const it = state.items.find(i => i.id === id);
+        if (it) {
+          it.zh = document.getElementById('edit-item-zh').value.trim() || it.zh;
+          it.es = document.getElementById('edit-item-es').value.trim() || it.es;
+          it.template = document.getElementById('edit-item-tpl').value;
+          saveStorage();
+          renderQuickItems();
+          renderExportAndDictView();
+        }
+        document.getElementById('modal-edit-item').classList.add('hidden');
+      });
+      document.getElementById('btn-delete-item').addEventListener('click', () => {
+        const id = document.getElementById('edit-item-id').value;
+        state.items = state.items.filter(i => i.id !== id);
+        saveStorage();
+        renderQuickItems();
+        renderExportAndDictView();
+        document.getElementById('modal-edit-item').classList.add('hidden');
+      });
+    });
+  </script>
+</body>
+</html>
