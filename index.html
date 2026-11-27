@@ -391,17 +391,19 @@
         <div id="dict-items-list" class="hidden divide-y divide-slate-100 border-t border-slate-100 pt-2"></div>
       </section>
 
-      <!-- 2. Supplier Dictionary Management -->
+      <!-- 2. Supplier Dictionary Management (collapsed by default) -->
       <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
+        <button id="sup-toggle-btn" type="button" class="w-full min-h-[48px] flex items-center justify-between gap-2 text-left">
+          <div class="min-w-0">
             <h2 id="sup-mgr-title" class="text-sm font-extrabold text-slate-900">供应商管理</h2>
-            <p id="sup-mgr-sub" class="text-xs text-slate-500 mt-0.5">保存称重记录时自动记录，可重命名或删除</p>
+            <p id="sup-mgr-sub" class="hidden text-xs text-slate-500 mt-0.5">保存称重记录时自动记录，可重命名或删除</p>
           </div>
-          <span id="sup-mgr-count" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
-        </div>
-
-        <div id="supplier-mgr-list" class="divide-y divide-slate-100"></div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span id="sup-mgr-count" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
+            <span id="ico-sup-chevron" class="w-4 h-4 text-slate-400 transition-transform duration-200"></span>
+          </div>
+        </button>
+        <div id="supplier-mgr-list" class="hidden divide-y divide-slate-100 border-t border-slate-100 pt-2"></div>
       </section>
 
       <!-- 3. Local Data Backup & Restore -->
@@ -859,6 +861,7 @@
       document.getElementById('ico-sub-pork').innerHTML = SVG_ICONS.sub_pork;
       document.getElementById('ico-sub-chicken').innerHTML = SVG_ICONS.sub_chicken;
       document.getElementById('ico-dict-chevron').innerHTML = SVG_ICONS.chevron;
+      document.getElementById('ico-sup-chevron').innerHTML = SVG_ICONS.chevron;
     }
 
     /***************************************************************************
@@ -4050,6 +4053,13 @@
         const open = list.classList.toggle('hidden') === false;
         document.getElementById('dict-card-sub').classList.toggle('hidden', !open);
         document.getElementById('ico-dict-chevron').classList.toggle('rotate-180', open);
+      });
+
+      document.getElementById('sup-toggle-btn').addEventListener('click', () => {
+        const list = document.getElementById('supplier-mgr-list');
+        const open = list.classList.toggle('hidden') === false;
+        document.getElementById('sup-mgr-sub').classList.toggle('hidden', !open);
+        document.getElementById('ico-sup-chevron').classList.toggle('rotate-180', open);
       });
 
       const supInp = document.getElementById('inp-supplier');
