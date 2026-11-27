@@ -2,16 +2,16 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="收货称重" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#14532d" />
   <title>收货称重 / Recepción</title>
-  <link id="apple-touch-icon-link" rel="apple-touch-icon" href="" />
-  <link id="favicon-link" rel="icon" type="image/png" href="" />
-  <link id="manifest-link" rel="manifest" href="" />
+  <link rel="icon" type="image/png" href="./icon-192.png" />
+  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="manifest" href="./manifest.json" />
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- ExcelJS for styled department-separated .xlsx generation -->
@@ -23,7 +23,7 @@
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background-color: #e2e8f0;
+      background-color: #F4F6F8;
       color: #0f172a;
       -webkit-tap-highlight-color: transparent;
     }
@@ -33,120 +33,90 @@
     input[type="number"] { -moz-appearance: textfield; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* ==== Bottom Dock (fixed double-layer thumb zone) ==== */
+    #bottom-dock {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      transition: transform 0.22s ease, opacity 0.18s ease;
+    }
+    #bottom-dock.kb-hidden {
+      transform: translateY(115%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .dock-tab { transition: transform 0.15s ease, color 0.15s ease; }
+    .dock-tab-active { transform: scale(1.06); }
+
+    /* Department capsule bar: frosted glass, sits right above the tab bar */
+    #dept-capsule-bar {
+      background: rgba(244, 246, 248, 0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(15, 23, 42, 0.07);
+    }
   </style>
 </head>
-<body class="min-h-screen flex justify-center bg-slate-200/80">
+<body class="min-h-screen flex justify-center">
 
   <!-- Main Mobile App Container -->
-  <div id="app" class="w-full max-w-[560px] min-h-screen bg-slate-50 shadow-xl flex flex-col relative pb-20">
+  <div id="app" class="w-full max-w-[560px] min-h-screen bg-[#F4F6F8] shadow-xl flex flex-col relative">
 
-    <!-- Sticky Top Header -->
-    <header class="sticky top-0 z-30 bg-slate-900 text-white px-4 py-3 shadow-md">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2.5 min-w-0">
+    <!-- Minimal Sticky Top Bar (page / department name + language toggle) -->
+    <header class="sticky top-0 z-30 text-white px-3.5 shadow-md" style="background:linear-gradient(135deg,#14532d 0%,#052e16 100%);padding-top:env(safe-area-inset-top)">
+      <div class="flex items-center justify-between gap-2 h-12">
+        <div class="flex items-center gap-2 min-w-0">
           <!-- Custom App Logo SVG -->
-          <div id="header-app-logo" class="w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-inner"></div>
-          <div class="truncate">
-            <h1 id="hdr-title" class="text-base font-extrabold leading-tight tracking-tight truncate">收货称重台</h1>
-            <p id="hdr-sub" class="text-[11px] text-slate-400 truncate">无码商品 · 实时去皮与比对</p>
-          </div>
+          <div id="header-app-logo" class="w-8 h-8 rounded-lg overflow-hidden shrink-0"></div>
+          <h1 id="hdr-title" class="text-sm font-extrabold tracking-tight truncate">收货称重台</h1>
         </div>
 
         <!-- Bilingual Toggle Pill -->
         <button id="btn-lang-toggle" type="button"
-          class="shrink-0 flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 rounded-xl px-3 py-2 text-xs font-bold transition">
-          <span id="ico-lang-hdr" class="w-4 h-4 text-emerald-400"></span>
-          <span id="lang-pill-zh" class="text-emerald-400">中文</span>
-          <span class="text-slate-500">/</span>
-          <span id="lang-pill-es" class="text-slate-300">ES</span>
+          class="shrink-0 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 rounded-full px-3 h-12 text-xs font-bold transition">
+          <span id="ico-lang-hdr" class="w-4 h-4 text-emerald-300"></span>
+          <span id="lang-pill-zh" class="text-emerald-300 font-extrabold">中文</span>
+          <span class="text-white/40">/</span>
+          <span id="lang-pill-es" class="text-white/70 font-semibold">ES</span>
         </button>
       </div>
-
-      <!-- Top Navigation Tabs -->
-      <nav class="grid grid-cols-3 gap-1.5 mt-3 bg-slate-800/90 p-1 rounded-xl">
-        <button type="button" data-tab="weigh" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow">
-          <span id="ico-tab-weigh" class="w-4 h-4 shrink-0"></span>
-          <span id="tab-lbl-weigh">称重录入</span>
-        </button>
-        <button type="button" data-tab="bill" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white">
-          <span id="ico-tab-bill" class="w-4 h-4 shrink-0"></span>
-          <span id="tab-lbl-bill">本车核对</span>
-          <span id="badge-bill-count" class="hidden bg-amber-400 text-slate-900 text-[11px] font-extrabold px-1.5 py-0.2 rounded-full tabular-nums">0</span>
-        </button>
-        <button type="button" data-tab="export" class="nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white">
-          <span id="ico-tab-export" class="w-4 h-4 shrink-0"></span>
-          <span id="tab-lbl-export">词条与Excel</span>
-        </button>
-      </nav>
     </header>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[500px] pointer-events-none flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-[500px] pointer-events-none flex flex-col gap-2" style="top:calc(58px + env(safe-area-inset-top))"></div>
 
     <!-- =====================================================================
          VIEW 1: WEIGHING ENTRY (称重录入)
     ====================================================================== -->
     <main id="view-weigh" class="p-3.5 space-y-3.5 flex-1">
 
-      <!-- 1. Supplier & Department Selector -->
-      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+      <!-- 1. Supplier Selector with Persistent Quick Tags & Suggestions -->
+      <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2">
         <div>
           <label id="lbl-supplier" for="inp-supplier" class="block text-xs font-bold text-slate-600 mb-1">供应商名称 (选填)</label>
           <div class="relative flex items-center">
-            <input id="inp-supplier" type="text" list="supplier-datalist" autocomplete="off"
+            <input id="inp-supplier" type="text" autocomplete="off"
               placeholder="输入供应商名称..."
               class="w-full h-12 px-3.5 pr-10 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-semibold outline-none transition" />
             <button id="btn-clear-supplier" type="button" title="Clear"
               class="hidden absolute right-2 w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 flex items-center justify-center">
               <span id="ico-clear-sup" class="w-4 h-4"></span>
             </button>
+            <div id="supplier-suggest" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-xl z-30 max-h-60 overflow-y-auto"></div>
           </div>
-          <datalist id="supplier-datalist"></datalist>
           <div id="recent-suppliers-bar" class="hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2"></div>
-        </div>
-
-        <!-- Department Buttons with Custom Vector SVG Icons -->
-        <div>
-          <label id="lbl-dept" class="block text-xs font-bold text-slate-600 mb-1.5">收货部门</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button type="button" data-dept="produce" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-emerald-600 text-white border-emerald-600 shadow-sm">
-              <span id="ico-dept-produce" class="w-6 h-6"></span>
-              <span id="dept-lbl-produce">蔬菜水果</span>
-            </button>
-            <button type="button" data-dept="meat" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50">
-              <span id="ico-dept-meat" class="w-6 h-6"></span>
-              <span id="dept-lbl-meat">肉类部</span>
-            </button>
-            <button type="button" data-dept="charcuteria" class="dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50">
-              <span id="ico-dept-charcuteria" class="w-6 h-6"></span>
-              <span id="dept-lbl-charcuteria">Charcutería</span>
-            </button>
-          </div>
-
-          <!-- Meat Sub-department Selector with Custom Vector SVG Icons -->
-          <div id="meat-sub-bar" class="hidden grid grid-cols-3 gap-2 mt-2.5 pt-2.5 border-t border-slate-100">
-            <button type="button" data-sub="beef" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-rose-700 text-white border-rose-700">
-              <span id="ico-sub-beef" class="w-5 h-5"></span>
-              <span id="sub-lbl-beef">牛肉 (Res)</span>
-            </button>
-            <button type="button" data-sub="pork" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300">
-              <span id="ico-sub-pork" class="w-5 h-5"></span>
-              <span id="sub-lbl-pork">猪肉 (Cerdo)</span>
-            </button>
-            <button type="button" data-sub="chicken" class="sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300">
-              <span id="ico-sub-chicken" class="w-5 h-5"></span>
-              <span id="sub-lbl-chicken">鸡肉 (Pollo)</span>
-            </button>
-          </div>
         </div>
       </section>
 
       <!-- 2. Item Selection & Auto-Save Dictionary Card -->
-      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+      <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
         <div class="flex items-center justify-between gap-2">
           <label id="lbl-item" for="inp-item-name" class="text-xs font-bold text-slate-600">商品名称 (点选或输入新品)</label>
           <button id="btn-temp-rule" type="button"
-            class="flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition shrink-0">
+            class="flex items-center gap-1 h-12 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 rounded-xl transition shrink-0">
             <span id="ico-rule-gear" class="w-3.5 h-3.5"></span>
             <span id="lbl-btn-rule">切换称重模板</span>
           </button>
@@ -197,7 +167,7 @@
       <div id="weighing-form-container" class="space-y-3.5"></div>
 
       <!-- 4. Live Result & Add-to-Bill Action Card -->
-      <section class="bg-slate-900 text-white rounded-2xl p-4 shadow-lg space-y-3">
+      <section class="bg-slate-900 text-white rounded-[14px] p-4 shadow-lg space-y-3">
         <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800">
           <div>
             <div id="res-lbl-net" class="text-[11px] font-semibold text-slate-400">最终实收净重</div>
@@ -225,13 +195,13 @@
     <main id="view-bill" class="hidden p-3.5 space-y-3.5 flex-1">
 
       <!-- Bill Controls Bar -->
-      <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+      <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between gap-2">
           <span id="bill-ctrl-lang-lbl" class="text-xs font-bold text-slate-600">账单显示语言:</span>
           <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl">
-            <button type="button" data-bill-lang="zh" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm">中文</button>
-            <button type="button" data-bill-lang="es" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600">Español</button>
-            <button type="button" data-bill-lang="bi" class="bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600">双语</button>
+            <button type="button" data-bill-lang="zh" class="bill-lang-btn px-2.5 h-12 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm flex items-center justify-center">中文</button>
+            <button type="button" data-bill-lang="es" class="bill-lang-btn px-2.5 h-12 rounded-lg text-xs font-bold text-slate-600 flex items-center justify-center">Español</button>
+            <button type="button" data-bill-lang="bi" class="bill-lang-btn px-2.5 h-12 rounded-lg text-xs font-bold text-slate-600 flex items-center justify-center">双语</button>
           </div>
         </div>
 
@@ -244,14 +214,14 @@
             </div>
           </div>
           <button id="btn-toggle-hide-cost" type="button" role="switch" aria-checked="false"
-            class="w-12 h-7 rounded-full bg-slate-300 p-1 transition relative shrink-0">
-            <span id="toggle-cost-knob" class="block w-5 h-5 rounded-full bg-white shadow transition-transform"></span>
+            class="w-14 h-8 rounded-full bg-slate-300 p-1 transition relative shrink-0">
+            <span id="toggle-cost-knob" class="block w-6 h-6 rounded-full bg-white shadow transition-transform"></span>
           </button>
         </div>
       </section>
 
       <!-- Receipt Card for Vendor Comparison -->
-      <section id="receipt-card" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <section id="receipt-card" class="bg-white rounded-[14px] shadow-sm border border-slate-200 overflow-hidden">
         <div class="bg-slate-900 text-white px-4 py-3.5">
           <div class="flex items-center justify-between">
             <h2 id="rcpt-header" class="text-base font-extrabold tracking-tight">现场收货核对单</h2>
@@ -292,21 +262,57 @@
         </button>
       </div>
 
-      <div class="flex justify-end pt-1">
-        <button id="btn-clear-bill" type="button" class="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 px-2 py-1">
+      <div class="flex justify-end items-center gap-3 pt-1">
+        <button id="btn-purge-bill" type="button" class="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 px-2 min-h-[48px]">
           <span id="ico-trash-bill" class="w-3.5 h-3.5"></span>
-          <span id="lbl-clear-bill">清空当前核对单</span>
+          <span id="btn-purge-bill-lbl">清空(不进历史)</span>
+        </button>
+        <button id="btn-archive-bill" type="button"
+          class="flex items-center gap-1.5 h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-sm transition">
+          <span id="ico-archive-bill" class="w-4 h-4"></span>
+          <span id="btn-archive-bill-lbl">完成并归档本车</span>
         </button>
       </div>
     </main>
 
     <!-- =====================================================================
-         VIEW 3: DICTIONARY, EXCEL EXPORT & ICON PACK PREVIEW
+         VIEW 3: HISTORY ARCHIVE + PER-DEPARTMENT EXCEL EXPORT
     ====================================================================== -->
-    <main id="view-export" class="hidden p-3.5 space-y-3.5 flex-1">
+    <main id="view-history" class="hidden p-3.5 space-y-3.5 flex-1">
 
-      <!-- 1. Department-Separated Styled Excel Export Card -->
-      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+      <!-- History Filter & Totals Card -->
+      <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 id="his-title" class="text-sm font-extrabold text-slate-900">历史收货记录</h2>
+          <span id="his-count-badge" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
+        </div>
+        <div class="flex gap-2">
+          <select id="sel-his-dept" class="w-36 shrink-0 min-w-0 h-12 px-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
+            <option value="all">全部 / Todos</option>
+            <option value="produce">蔬菜水果 / Verduras</option>
+            <option value="meat_beef">牛肉 / Res</option>
+            <option value="meat_pork">猪肉 / Cerdo</option>
+            <option value="meat_chicken">鸡肉 / Pollo</option>
+            <option value="charcuteria">Charcutería</option>
+          </select>
+          <div class="relative flex-1 min-w-0">
+            <span id="ico-his-search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></span>
+            <input id="inp-his-search" type="text" autocomplete="off"
+              placeholder="搜索商品/供应商..."
+              class="w-full h-12 pl-9 pr-3 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-500 text-sm font-bold outline-none transition" />
+          </div>
+        </div>
+        <div class="flex items-center justify-between bg-slate-50 border border-slate-200/70 rounded-xl px-3 h-12 text-xs font-bold text-slate-700 tabular-nums">
+          <span id="his-tot-net">0.0 kg</span>
+          <span id="his-tot-amt" class="text-emerald-700">$0.00</span>
+        </div>
+      </section>
+
+      <!-- Archived Records List -->
+      <div id="history-list" class="space-y-2"></div>
+
+      <!-- Department-Separated Styled Excel Export Card (from history archive) -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
         <div class="flex items-start justify-between gap-2">
           <div>
             <h2 id="exp-card-title" class="text-sm font-extrabold text-slate-900">分部门独立 Excel 报表 (.xlsx)</h2>
@@ -318,7 +324,7 @@
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
           <label id="lbl-exp-dept" for="sel-export-dept" class="block text-xs font-bold text-slate-700">1. 单独导出指定部门报表 (单表)</label>
           <div class="flex gap-2">
-            <select id="sel-export-dept" class="flex-1 h-11 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
+            <select id="sel-export-dept" class="flex-1 min-w-0 h-12 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
               <option value="produce">蔬菜水果部 (Frutas y Verduras)</option>
               <option value="meat_beef">牛肉部 (Carnicería - Res)</option>
               <option value="meat_pork">猪肉部 (Carnicería - Cerdo)</option>
@@ -326,7 +332,7 @@
               <option value="charcuteria">Charcutería部 (Charcutería)</option>
             </select>
             <button id="btn-export-single-dept" type="button"
-              class="h-11 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
+              class="h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
               <span id="ico-exp-single" class="w-4 h-4"></span>
               <span id="lbl-exp-single">导出该部门</span>
             </button>
@@ -339,17 +345,24 @@
           <span id="btn-export-all-lbl">一键导出全部有记录部门 (分工作表 .xlsx)</span>
         </button>
 
-        <div class="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-          <span id="lbl-demo-hint" class="text-[11px] text-slate-500">想先测试 Excel 色阶效果？</span>
-          <button id="btn-load-demo" type="button"
-            class="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 px-3 py-1.5 rounded-lg transition">
-            填充各部门演示数据
-          </button>
-        </div>
+        <p id="exp-scope-hint" class="text-[11px] text-slate-500">导出来源：历史归档记录</p>
       </section>
 
-      <!-- 2. Saved Custom Items Dictionary Management -->
-      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3">
+      <div class="flex justify-end pt-1 pb-2">
+        <button id="btn-clear-history" type="button" class="flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 px-2 min-h-[48px]">
+          <span id="ico-trash-history" class="w-3.5 h-3.5"></span>
+          <span id="lbl-clear-history">清空全部历史</span>
+        </button>
+      </div>
+    </main>
+
+    <!-- =====================================================================
+         VIEW 4: SETTINGS (Dictionary, Suppliers, Backup, Install)
+    ====================================================================== -->
+    <main id="view-settings" class="hidden p-3.5 space-y-3.5 flex-1">
+
+      <!-- 1. Saved Custom Items Dictionary Management -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <div>
             <h2 id="dict-card-title" class="text-sm font-extrabold text-slate-900">已保存商品词条库</h2>
@@ -361,23 +374,76 @@
         <div id="dict-items-list" class="divide-y divide-slate-100"></div>
       </section>
 
-      <!-- 3. Custom SVG Icon Pack Preview & Home Screen Setup Guide -->
-      <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200/80 space-y-3.5">
+      <!-- 2. Supplier Dictionary Management -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <h2 id="iconpack-title" class="text-sm font-extrabold text-slate-900">程序桌面图标与全套图标包预览</h2>
-            <p id="iconpack-sub" class="text-xs text-slate-500 mt-0.5">支持手机浏览器“添加到主屏幕”生成独立全屏 App 图标</p>
+            <h2 id="sup-mgr-title" class="text-sm font-extrabold text-slate-900">供应商管理</h2>
+            <p id="sup-mgr-sub" class="text-xs text-slate-500 mt-0.5">保存称重记录时自动记录，可重命名或删除</p>
+          </div>
+          <span id="sup-mgr-count" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
+        </div>
+
+        <div id="supplier-mgr-list" class="divide-y divide-slate-100"></div>
+      </section>
+
+      <!-- 3. Local Data Backup & Restore -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 id="backup-title" class="text-sm font-extrabold text-slate-900">数据备份与恢复</h2>
+            <p id="backup-sub" class="text-xs text-slate-500 mt-0.5">数据 100% 保存在本机浏览器，换机/清缓存前请先导出</p>
+          </div>
+          <span id="ico-backup-card" class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center p-2 shrink-0"></span>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+          <div id="backup-stats" class="text-xs font-bold text-slate-700 tabular-nums"></div>
+          <div class="flex items-center justify-between gap-2">
+            <span id="backup-last" class="text-xs font-semibold text-slate-500 tabular-nums"></span>
+            <span id="backup-warn" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md shrink-0"></span>
           </div>
         </div>
 
-        <!-- Home Screen App Icon Preview -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <button id="btn-export-backup" type="button"
+            class="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+            <span id="ico-export-backup" class="w-4 h-4"></span>
+            <span id="btn-export-backup-lbl">一键导出备份</span>
+          </button>
+          <button id="btn-import-backup" type="button"
+            class="h-12 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+            <span id="ico-import-backup" class="w-4 h-4"></span>
+            <span id="btn-import-backup-lbl">导入恢复数据</span>
+          </button>
+        </div>
+        <input id="file-import-backup" type="file" accept=".json,application/json" class="hidden" />
+      </section>
+
+      <!-- 4. Install to Home Screen -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
         <div class="p-3 rounded-xl bg-slate-900 text-white flex items-center gap-3.5">
-          <div id="preview-homescreen-icon" class="w-16 h-16 rounded-2xl overflow-hidden shadow-lg shrink-0 border border-white/15"></div>
-          <div class="space-y-1">
-            <div class="text-xs font-extrabold text-emerald-400">桌面快捷图标 · 收货称重 / Recepción</div>
-            <p id="iconpack-guide" class="text-[11px] text-slate-300 leading-relaxed">
-              iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“添加到主屏幕/安装应用”。
+          <img src="./icon-192.png" alt="App icon" class="w-16 h-16 rounded-[14px] shadow-lg shrink-0 border border-white/15" />
+          <div class="space-y-1 min-w-0">
+            <div id="install-title" class="text-xs font-extrabold text-emerald-400">安装到手机桌面</div>
+            <p id="install-guide" class="text-[11px] text-slate-300 leading-relaxed">
+              iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“安装应用”。
             </p>
+          </div>
+        </div>
+        <button id="btn-install-pwa" type="button"
+          class="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow transition">
+          <span id="ico-install" class="w-4 h-4"></span>
+          <span id="btn-install-lbl">安装到桌面</span>
+        </button>
+      </section>
+
+      <!-- 5. Vector Icon Pack Preview -->
+      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 id="iconpack-title" class="text-sm font-extrabold text-slate-900">全套矢量图标包预览</h2>
+            <p id="iconpack-sub" class="text-xs text-slate-500 mt-0.5">支持手机浏览器“添加到主屏幕”生成独立全屏 App 图标</p>
           </div>
         </div>
 
@@ -397,7 +463,7 @@
 
     <!-- Edit Item Modal -->
     <div id="modal-edit-item" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
-      <div class="bg-white w-full max-w-[460px] rounded-2xl p-4 shadow-2xl space-y-3.5">
+      <div class="bg-white w-full max-w-[460px] rounded-[14px] p-4 shadow-2xl space-y-3.5">
         <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
           <h3 id="modal-edit-title" class="text-sm font-extrabold text-slate-900">编辑商品词条</h3>
           <button id="btn-close-modal" type="button" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold">✕</button>
@@ -405,15 +471,15 @@
         <input type="hidden" id="edit-item-id" />
         <div>
           <label id="lbl-edit-zh" class="block text-xs font-bold text-slate-600 mb-1">中文名称</label>
-          <input id="edit-item-zh" type="text" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
+          <input id="edit-item-zh" type="text" class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
         </div>
         <div>
           <label id="lbl-edit-es" class="block text-xs font-bold text-slate-600 mb-1">西语名称 (Español)</label>
-          <input id="edit-item-es" type="text" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
+          <input id="edit-item-es" type="text" class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
         </div>
         <div>
           <label id="lbl-edit-tpl" class="block text-xs font-bold text-slate-600 mb-1">默认称重模板</label>
-          <select id="edit-item-tpl" class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-bold bg-white">
+          <select id="edit-item-tpl" class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-bold bg-white">
             <option value="A">模板A · 筐/箱称重</option>
             <option value="B">模板B · 成对称重</option>
             <option value="C">模板C · 多轮累加</option>
@@ -421,9 +487,96 @@
           </select>
         </div>
         <div class="grid grid-cols-2 gap-2 pt-2">
-          <button id="btn-delete-item" type="button" class="h-11 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs">删除词条</button>
-          <button id="btn-save-item-edit" type="button" class="h-11 rounded-xl bg-emerald-600 text-white font-bold text-xs">保存修改</button>
+          <button id="btn-delete-item" type="button" class="h-12 rounded-xl bg-rose-50 text-rose-700 border border-rose-200 font-bold text-xs">删除词条</button>
+          <button id="btn-save-item-edit" type="button" class="h-12 rounded-xl bg-emerald-600 text-white font-bold text-xs">保存修改</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Supplier Rename Modal -->
+    <div id="modal-edit-supplier" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
+      <div class="bg-white w-full max-w-[460px] rounded-[14px] p-4 shadow-2xl space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h3 id="modal-sup-title" class="text-sm font-extrabold text-slate-900">重命名供应商</h3>
+          <button id="btn-close-sup-modal" type="button" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold">✕</button>
+        </div>
+        <input type="hidden" id="edit-sup-old" />
+        <div>
+          <label id="lbl-edit-sup" class="block text-xs font-bold text-slate-600 mb-1">供应商名称</label>
+          <input id="edit-sup-name" type="text" autocomplete="off" class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-bold" />
+        </div>
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="btn-cancel-sup-edit" type="button" class="h-12 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">取消</button>
+          <button id="btn-save-sup-edit" type="button" class="h-12 rounded-xl bg-emerald-600 text-white font-bold text-xs">保存修改</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Restore Backup Confirm Modal -->
+    <div id="modal-restore" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
+      <div class="bg-white w-full max-w-[460px] rounded-[14px] p-4 shadow-2xl space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h3 id="restore-title" class="text-sm font-extrabold text-slate-900">确认恢复备份</h3>
+          <button id="btn-close-restore" type="button" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold">✕</button>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs font-bold text-slate-700">
+          <div><span id="restore-date-lbl">备份导出时间:</span> <span id="restore-date-val" class="tabular-nums"></span></div>
+          <div id="restore-counts" class="tabular-nums"></div>
+        </div>
+        <div class="space-y-2">
+          <button id="btn-restore-merge" type="button" class="w-full h-12 rounded-xl bg-emerald-600 text-white font-extrabold text-xs">智能合并（推荐）</button>
+          <button id="btn-restore-replace" type="button" class="w-full h-12 rounded-xl bg-rose-600 text-white font-extrabold text-xs">完全覆盖</button>
+          <button id="btn-cancel-restore" type="button" class="w-full h-12 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">取消</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- iOS Install Guide Modal -->
+    <div id="modal-ios-install" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-3">
+      <div class="bg-white w-full max-w-[460px] rounded-[14px] p-4 shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+          <h3 id="ios-title" class="text-sm font-extrabold text-slate-900">添加到主屏幕</h3>
+          <button id="btn-close-ios" type="button" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-600 font-bold">✕</button>
+        </div>
+        <ol class="space-y-2.5 text-xs font-semibold text-slate-700 list-decimal pl-5">
+          <li id="ios-step1"></li>
+          <li id="ios-step2"></li>
+          <li id="ios-step3"></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- ===== Bottom Dock: department capsule bar + fixed bottom tab bar ===== -->
+    <div id="bottom-dock">
+      <div class="max-w-[560px] mx-auto">
+        <div id="dept-capsule-bar" class="hidden">
+          <div id="dept-capsule-scroll" class="flex items-center gap-2 px-3 py-2 overflow-x-auto no-scrollbar"></div>
+        </div>
+        <nav class="grid grid-cols-4 bg-slate-900 border-t border-slate-800 shadow-[0_-4px_16px_rgba(15,23,42,0.25)]" style="padding-bottom:env(safe-area-inset-bottom)">
+          <button type="button" data-tab="weigh" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+            <span id="ico-tab-weigh" class="w-5 h-5"></span>
+            <span id="tab-lbl-weigh">称重</span>
+            <span class="text-[9px] font-semibold opacity-75 leading-none">Pesar</span>
+          </button>
+          <button type="button" data-tab="bill" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+            <span id="ico-tab-bill" class="w-5 h-5"></span>
+            <span class="flex items-center gap-1">
+              <span id="tab-lbl-bill">核对单</span>
+              <span id="badge-bill-count" class="hidden bg-amber-400 text-slate-900 text-[10px] font-extrabold min-w-[17px] h-[17px] px-1 rounded-full tabular-nums flex items-center justify-center">0</span>
+            </span>
+            <span class="text-[9px] font-semibold opacity-75 leading-none">Recibo</span>
+          </button>
+          <button type="button" data-tab="history" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+            <span id="ico-tab-history" class="w-5 h-5"></span>
+            <span id="tab-lbl-history">历史</span>
+            <span class="text-[9px] font-semibold opacity-75 leading-none">Historial</span>
+          </button>
+          <button type="button" data-tab="settings" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+            <span id="ico-tab-settings" class="w-5 h-5"></span>
+            <span id="tab-lbl-settings">词条设置</span>
+            <span class="text-[9px] font-semibold opacity-75 leading-none">Ajustes</span>
+          </button>
+        </nav>
       </div>
     </div>
 
@@ -514,7 +667,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
           <path d="M12 3v3m0 0a5 5 0 100 10 5 5 0 000-10z"/>
           <path d="M12 11l2.2-2.2"/>
-          <path d="M5 20h14l-1.5-4h-11L5 20z"/>
+          <path d="M5 20h14l-1.5-4h-12L5 20z"/>
         </svg>
       `,
       receipt: `
@@ -605,126 +758,66 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
+      `,
+
+      history: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M12 7v5l4 2"/>
+        </svg>
+      `,
+      archive: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M21 8v13H3V8"/>
+          <path d="M1 3h22v5H1z"/>
+          <path d="M10 12h4"/>
+        </svg>
+      `,
+      smartphone: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <rect x="5" y="2" width="14" height="20" rx="3"/>
+          <line x1="10" y1="18" x2="14" y2="18"/>
+        </svg>
+      `,
+      download: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      `,
+      upload: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      `,
+      database: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+      `,
+      pencil: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+        </svg>
       `
     };
-
-    /**
-     * Generates a crisp 512x512 PNG data-URI from the SVG App Icon and attaches
-     * it to apple-touch-icon, favicon, and a dynamic Web App Manifest so both
-     * iOS Safari and Android Chrome install it with a real home-screen icon.
-     */
-    function installHomeScreenIconAndManifest() {
-      try {
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-
-        // Draw crisp rounded app background
-        const grad = ctx.createLinearGradient(0, 0, 512, 512);
-        grad.addColorStop(0, '#059669');
-        grad.addColorStop(1, '#0f172a');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, 512, 512);
-
-        // Scale Dial
-        ctx.fillStyle = '#ecfdf5';
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 14;
-        ctx.beginPath();
-        ctx.arc(256, 146, 64, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Dial Needle
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = 14;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(256, 146);
-        ctx.lineTo(286, 112);
-        ctx.stroke();
-
-        // Scale Neck & Platform
-        ctx.fillStyle = '#a7f3d0';
-        ctx.fillRect(236, 210, 40, 36);
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.roundRect(104, 246, 304, 28, 14);
-        ctx.fill();
-
-        // Crate on Scale
-        ctx.fillStyle = '#fbbf24';
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.roundRect(128, 284, 256, 138, 28);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.strokeStyle = '#d97706';
-        ctx.lineWidth = 10;
-        ctx.beginPath();
-        ctx.moveTo(136, 330);
-        ctx.lineTo(376, 330);
-        ctx.moveTo(136, 376);
-        ctx.lineTo(376, 376);
-        ctx.stroke();
-
-        // Verified Check Badge
-        ctx.fillStyle = '#10b981';
-        ctx.strokeStyle = '#0f172a';
-        ctx.lineWidth = 12;
-        ctx.beginPath();
-        ctx.arc(376, 146, 54, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 13;
-        ctx.beginPath();
-        ctx.moveTo(352, 146);
-        ctx.lineTo(369, 163);
-        ctx.lineTo(402, 129);
-        ctx.stroke();
-
-        const pngDataUrl = canvas.toDataURL('image/png');
-        document.getElementById('apple-touch-icon-link').href = pngDataUrl;
-        document.getElementById('favicon-link').href = pngDataUrl;
-
-        const manifest = {
-          name: '收货称重 / Recepción',
-          short_name: '收货称重',
-          start_url: '.',
-          display: 'standalone',
-          background_color: '#0f172a',
-          theme_color: '#0f172a',
-          icons: [
-            { src: pngDataUrl, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
-          ]
-        };
-        const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
-        document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
-      } catch (e) {
-        // Fallback silently if restricted
-      }
-    }
 
     function mountStaticIcons() {
       document.getElementById('header-app-logo').innerHTML = SVG_ICONS.appIcon;
       document.getElementById('ico-lang-hdr').innerHTML = SVG_ICONS.globe;
+
       document.getElementById('ico-tab-weigh').innerHTML = SVG_ICONS.scale;
       document.getElementById('ico-tab-bill').innerHTML = SVG_ICONS.receipt;
-      document.getElementById('ico-tab-export').innerHTML = SVG_ICONS.excel;
+      document.getElementById('ico-tab-history').innerHTML = SVG_ICONS.history;
+      document.getElementById('ico-tab-settings').innerHTML = SVG_ICONS.settings;
 
       document.getElementById('ico-clear-sup').innerHTML = SVG_ICONS.close;
-      document.getElementById('ico-dept-produce').innerHTML = SVG_ICONS.dept_produce;
-      document.getElementById('ico-dept-meat').innerHTML = SVG_ICONS.dept_meat;
-      document.getElementById('ico-dept-charcuteria').innerHTML = SVG_ICONS.dept_charcuteria;
-      document.getElementById('ico-sub-beef').innerHTML = SVG_ICONS.sub_beef;
-      document.getElementById('ico-sub-pork').innerHTML = SVG_ICONS.sub_pork;
-      document.getElementById('ico-sub-chicken').innerHTML = SVG_ICONS.sub_chicken;
-
       document.getElementById('ico-rule-gear').innerHTML = SVG_ICONS.settings;
       document.getElementById('ico-search-item').innerHTML = SVG_ICONS.search;
       document.getElementById('ico-reset-item').innerHTML = SVG_ICONS.close;
@@ -734,9 +827,17 @@
       document.getElementById('ico-copy-wa').innerHTML = SVG_ICONS.whatsapp;
       document.getElementById('ico-xlsx-wa').innerHTML = SVG_ICONS.excel;
       document.getElementById('ico-trash-bill').innerHTML = SVG_ICONS.trash;
+      document.getElementById('ico-archive-bill').innerHTML = SVG_ICONS.archive;
 
+      document.getElementById('ico-his-search').innerHTML = SVG_ICONS.search;
+      document.getElementById('ico-trash-history').innerHTML = SVG_ICONS.trash;
       document.getElementById('ico-exp-single').innerHTML = SVG_ICONS.excel;
       document.getElementById('ico-exp-all').innerHTML = SVG_ICONS.excel;
+
+      document.getElementById('ico-backup-card').innerHTML = SVG_ICONS.database;
+      document.getElementById('ico-export-backup').innerHTML = SVG_ICONS.download;
+      document.getElementById('ico-import-backup').innerHTML = SVG_ICONS.upload;
+      document.getElementById('ico-install').innerHTML = SVG_ICONS.smartphone;
     }
 
     /***************************************************************************
@@ -746,9 +847,10 @@
       zh: {
         hdrTitle: '收货称重台',
         hdrSub: '无码商品 · 实时去皮与比对',
-        tabWeigh: '称重录入',
-        tabBill: '本车核对',
-        tabExport: '词条与Excel',
+        tabWeigh: '称重',
+        tabBill: '核对单',
+        tabHistory: '历史',
+        tabSettings: '词条设置',
         lblSupplier: '供应商名称 (选填)',
         phSupplier: '输入供应商名称...',
         lblDept: '收货部门',
@@ -867,14 +969,71 @@
         presetLightCrate: '薄筐',
         presetWoodBox: '木箱',
         presetChickenCrate: '鸡筐',
-        presetFoamBox: '泡沫箱'
+        presetFoamBox: '泡沫箱',
+        btnArchiveBill: '完成并归档本车',
+        btnPurgeBill: '清空(不进历史)',
+        confirmPurgeBill: '清空后本车记录不会进入历史，确定清空？',
+        toastArchived: '本车已归档到历史',
+        toastBillCleared: '已清空本车',
+        hisTitle: '历史收货记录',
+        hisCount: '{n} 笔',
+        hisTotNet: '总净重',
+        hisTotAmt: '总金额',
+        hisEmpty: '暂无历史记录（完成开单后自动归档到这里）',
+        btnDelRec: '删除',
+        confirmDelRec: '确定删除这条历史记录？',
+        btnClearHistory: '清空全部历史',
+        confirmClearHistory: '确定清空全部历史记录？此操作不可恢复！',
+        toastHistoryCleared: '历史记录已清空',
+        expScopeHint: '导出来源：历史归档记录（本车未归档记录请在核对单页导出）',
+        hisSearchPh: '搜索商品/供应商...',
+        supMgrTitle: '供应商管理',
+        supMgrSub: '保存称重记录时自动记录，可重命名或删除',
+        supEmpty: '暂无保存的供应商',
+        supUseCount: '已用 {n} 次',
+        btnRename: '重命名',
+        confirmDelSupplier: '确定删除供应商「{name}」？',
+        toastSupRenamed: '供应商已重命名',
+        toastSupExists: '已存在同名供应商',
+        toastSupDeleted: '供应商已删除',
+        modalSupTitle: '重命名供应商',
+        lblEditSup: '供应商名称',
+        backupTitle: '数据备份与恢复',
+        backupSub: '数据 100% 保存在本机浏览器，换机/清缓存前请先导出',
+        backupStatsTpl: '商品词条 {items} 条 · 供应商 {suppliers} 个 · 历史记录 {history} 笔 · 本车 {current} 项',
+        backupLastPrefix: '上次备份',
+        backupNever: '从未备份',
+        backupSoonWarn: '超过 7 天未备份',
+        btnExportBackup: '一键导出备份',
+        btnImportBackup: '导入恢复数据',
+        backupInvalid: '备份文件无效或已损坏，未做任何修改',
+        backupModalTitle: '确认恢复备份',
+        backupDateLbl: '备份导出时间:',
+        backupCountsTpl: '商品 {items} · 供应商 {suppliers} · 历史 {history} · 本车 {current}',
+        btnMergeRestore: '智能合并（推荐）',
+        btnReplaceRestore: '完全覆盖',
+        btnCancel: '取消',
+        confirmReplaceRestore: '完全覆盖将清空现有全部数据并用备份替换，确定继续？',
+        toastRestored: '数据已恢复完成',
+        toastBackupDone: '备份文件已导出',
+        installTitle: '安装到手机桌面',
+        installGuide: 'iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“安装应用”。',
+        btnInstallPwa: '安装到桌面',
+        installIosTitle: '添加到主屏幕（iPhone）',
+        installIosStep1: '点 Safari 浏览器底部中间的「分享」按钮',
+        installIosStep2: '在菜单中选择「添加到主屏幕」',
+        installIosStep3: '点右上角「添加」完成安装，桌面图标可离线秒开',
+        installUseBrowserMenu: '请在浏览器菜单中选择「安装应用 / 添加到主屏幕」',
+        toastInstalled: '已成功安装到桌面',
+        confirmDelItem: '确定删除商品词条「{name}」？'
       },
       es: {
         hdrTitle: 'Recepción y Pesaje',
         hdrSub: 'Sin código · Tara y control en vivo',
-        tabWeigh: 'Pesaje',
-        tabBill: 'Cuenta',
-        tabExport: 'Productos y Excel',
+        tabWeigh: 'Pesar',
+        tabBill: 'Recibo',
+        tabHistory: 'Historial',
+        tabSettings: 'Ajustes',
         lblSupplier: 'Proveedor (Opcional)',
         phSupplier: 'Nombre del proveedor...',
         lblDept: 'Departamento',
@@ -993,7 +1152,63 @@
         presetLightCrate: 'Ligera',
         presetWoodBox: 'Madera',
         presetChickenCrate: 'Cesta pollo',
-        presetFoamBox: 'Cava/Caja'
+        presetFoamBox: 'Cava/Caja',
+        btnArchiveBill: 'Archivar y Cerrar',
+        btnPurgeBill: 'Vaciar sin archivar',
+        confirmPurgeBill: 'Se borrará sin guardar en el historial. ¿Continuar?',
+        toastArchived: 'Cuenta archivada en el historial',
+        toastBillCleared: 'Cuenta vaciada',
+        hisTitle: 'Historial de Recepción',
+        hisCount: '{n} registros',
+        hisTotNet: 'Peso total',
+        hisTotAmt: 'Total',
+        hisEmpty: 'Sin registros archivados aún',
+        btnDelRec: 'Borrar',
+        confirmDelRec: '¿Eliminar este registro del historial?',
+        btnClearHistory: 'Borrar todo el historial',
+        confirmClearHistory: '¿Borrar TODO el historial? No se puede deshacer.',
+        toastHistoryCleared: 'Historial borrado',
+        expScopeHint: 'Fuente: registros archivados (la cuenta actual se exporta desde Recibo)',
+        hisSearchPh: 'Buscar producto/proveedor...',
+        supMgrTitle: 'Proveedores',
+        supMgrSub: 'Se guardan al registrar pesajes. Renombrar o eliminar.',
+        supEmpty: 'Aún no hay proveedores guardados',
+        supUseCount: '{n} usos',
+        btnRename: 'Renombrar',
+        confirmDelSupplier: '¿Eliminar proveedor "{name}"?',
+        toastSupRenamed: 'Proveedor renombrado',
+        toastSupExists: 'Ya existe un proveedor con ese nombre',
+        toastSupDeleted: 'Proveedor eliminado',
+        modalSupTitle: 'Renombrar proveedor',
+        lblEditSup: 'Nombre del proveedor',
+        backupTitle: 'Respaldo y Restauración',
+        backupSub: 'Todo se guarda solo en este teléfono. Exporta antes de limpiar o cambiar de equipo.',
+        backupStatsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en cuenta',
+        backupLastPrefix: 'Último respaldo',
+        backupNever: 'Nunca',
+        backupSoonWarn: 'Más de 7 días sin respaldo',
+        btnExportBackup: 'Exportar Respaldo',
+        btnImportBackup: 'Importar Respaldo',
+        backupInvalid: 'Archivo de respaldo inválido o dañado. No se cambió nada.',
+        backupModalTitle: 'Confirmar Restauración',
+        backupDateLbl: 'Fecha del respaldo:',
+        backupCountsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en cuenta',
+        btnMergeRestore: 'Combinar (Recomendado)',
+        btnReplaceRestore: 'Reemplazar Todo',
+        btnCancel: 'Cancelar',
+        confirmReplaceRestore: 'Reemplazar borrará los datos actuales. ¿Continuar?',
+        toastRestored: 'Datos restaurados',
+        toastBackupDone: 'Respaldo exportado',
+        installTitle: 'Instalar en pantalla de inicio',
+        installGuide: 'iPhone Safari: Compartir → "Añadir a pantalla de inicio". Android Chrome: Menú → "Instalar aplicación".',
+        btnInstallPwa: 'Instalar app',
+        installIosTitle: 'Añadir a pantalla de inicio (iPhone)',
+        installIosStep1: 'Toca el botón "Compartir" en la barra inferior de Safari',
+        installIosStep2: 'Elige "Añadir a pantalla de inicio"',
+        installIosStep3: 'Toca "Añadir" para terminar; el ícono abre la app sin conexión',
+        installUseBrowserMenu: 'Use el menú del navegador: "Instalar aplicación / Añadir a pantalla de inicio"',
+        toastInstalled: 'App instalada correctamente',
+        confirmDelItem: '¿Eliminar el producto "{name}"?'
       }
     };
 
@@ -1003,8 +1218,11 @@
     const STORAGE_KEYS = {
       ITEMS: 'rcv_v4_items',
       RECORDS: 'rcv_v4_records',
-      SUPPLIERS: 'rcv_v4_suppliers',
-      LANG: 'rcv_v4_lang'
+      SUPPLIERS: 'pesos_suppliers_v1',
+      LEGACY_SUPPLIERS: 'rcv_v4_suppliers',
+      HISTORY: 'pesos_history_v1',
+      LANG: 'rcv_v4_lang',
+      BACKUP_AT: 'pesos_last_backup_at'
     };
 
     const DEFAULT_ITEMS = [
@@ -1061,10 +1279,41 @@
       form: createBlankFormState('A', 'crate'),
       items: [],
       records: [],
+      history: [],
       suppliers: [],
       billLang: 'zh',
       hideCost: false
     };
+
+    let pendingRestore = null;
+
+    /* Suppliers: [{ name, count, lastUsed }] in pesos_suppliers_v1.
+       Migrates the old rcv_v4_suppliers string array on first load. */
+    function loadSuppliers() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIERS));
+        if (Array.isArray(saved)) {
+          const objs = saved.filter(s => s && typeof s === 'object' && typeof s.name === 'string' && s.name.trim());
+          if (objs.length || saved.length === 0) {
+            return objs.map(s => ({ name: s.name.trim(), count: Math.max(1, Number(s.count) || 1), lastUsed: Number(s.lastUsed) || 0 }));
+          }
+        }
+      } catch { /* fall through to legacy migration */ }
+      try {
+        const legacy = JSON.parse(localStorage.getItem(STORAGE_KEYS.LEGACY_SUPPLIERS));
+        if (Array.isArray(legacy)) {
+          const migrated = legacy
+            .filter(s => typeof s === 'string' && s.trim())
+            .map((name, i) => ({ name: name.trim(), count: 1, lastUsed: Date.now() - i * 86400000 }));
+          if (migrated.length) {
+            localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(migrated));
+            localStorage.removeItem(STORAGE_KEYS.LEGACY_SUPPLIERS);
+          }
+          return migrated;
+        }
+      } catch { /* ignore */ }
+      return [];
+    }
 
     function loadStorage() {
       try {
@@ -1080,16 +1329,18 @@
         state.records = [];
       }
       try {
-        const savedSup = JSON.parse(localStorage.getItem(STORAGE_KEYS.SUPPLIERS));
-        state.suppliers = Array.isArray(savedSup) ? savedSup : [];
+        const savedHistory = JSON.parse(localStorage.getItem(STORAGE_KEYS.HISTORY));
+        state.history = Array.isArray(savedHistory) ? savedHistory : [];
       } catch {
-        state.suppliers = [];
+        state.history = [];
       }
+      state.suppliers = loadSuppliers();
     }
 
     function saveStorage() {
       localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(state.items));
       localStorage.setItem(STORAGE_KEYS.RECORDS, JSON.stringify(state.records));
+      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(state.history));
       localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(state.suppliers));
       localStorage.setItem(STORAGE_KEYS.LANG, state.lang);
     }
@@ -1131,7 +1382,7 @@
         el.style.opacity = '0';
         el.style.transform = 'translateY(-6px)';
         setTimeout(() => el.remove(), 300);
-      }, 2400);
+      }, 2000);
     }
 
     function getDeptKey() {
@@ -1283,31 +1534,25 @@
      * 5. UI RENDERING
      ***************************************************************************/
     function applyStaticTranslations() {
-      document.getElementById('hdr-title').textContent = t('hdrTitle');
-      document.getElementById('hdr-sub').textContent = t('hdrSub');
-      document.getElementById('tab-lbl-weigh').textContent = t('tabWeigh');
-      document.getElementById('tab-lbl-bill').textContent = t('tabBill');
-      document.getElementById('tab-lbl-export').textContent = t('tabExport');
+      updateHdrTitle();
 
       const pillZh = document.getElementById('lang-pill-zh');
       const pillEs = document.getElementById('lang-pill-es');
       if (state.lang === 'zh') {
-        pillZh.className = 'text-emerald-400 font-extrabold';
-        pillEs.className = 'text-slate-400 font-semibold';
+        pillZh.className = 'text-emerald-300 font-extrabold';
+        pillEs.className = 'text-white/60 font-semibold';
       } else {
-        pillZh.className = 'text-slate-400 font-semibold';
-        pillEs.className = 'text-emerald-400 font-extrabold';
+        pillZh.className = 'text-white/60 font-semibold';
+        pillEs.className = 'text-emerald-300 font-extrabold';
       }
+
+      document.getElementById('tab-lbl-weigh').textContent = t('tabWeigh');
+      document.getElementById('tab-lbl-bill').textContent = t('tabBill');
+      document.getElementById('tab-lbl-history').textContent = t('tabHistory');
+      document.getElementById('tab-lbl-settings').textContent = t('tabSettings');
 
       document.getElementById('lbl-supplier').textContent = t('lblSupplier');
       document.getElementById('inp-supplier').placeholder = t('phSupplier');
-      document.getElementById('lbl-dept').textContent = t('lblDept');
-      document.getElementById('dept-lbl-produce').textContent = t('deptProduce');
-      document.getElementById('dept-lbl-meat').textContent = t('deptMeat');
-      document.getElementById('dept-lbl-charcuteria').textContent = t('deptCharcuteria');
-      document.getElementById('sub-lbl-beef').textContent = t('subBeef');
-      document.getElementById('sub-lbl-pork').textContent = t('subPork');
-      document.getElementById('sub-lbl-chicken').textContent = t('subChicken');
       document.getElementById('lbl-item').textContent = t('lblItem');
       document.getElementById('lbl-btn-rule').textContent = t('btnTempRule');
       document.getElementById('inp-item-name').placeholder = t('phItemName');
@@ -1330,20 +1575,32 @@
       document.getElementById('rcpt-tot-amt-lbl').textContent = t('rcptTotAmt');
       document.getElementById('btn-copy-wa-lbl').textContent = t('btnCopyWa');
       document.getElementById('btn-export-wa-lbl').textContent = t('btnExportWa');
-      document.getElementById('lbl-clear-bill').textContent = t('btnClearBill');
+      document.getElementById('btn-archive-bill-lbl').textContent = t('btnArchiveBill');
+      document.getElementById('btn-purge-bill-lbl').textContent = t('btnPurgeBill');
 
+      document.getElementById('his-title').textContent = t('hisTitle');
+      document.getElementById('inp-his-search').placeholder = t('hisSearchPh');
       document.getElementById('exp-card-title').textContent = t('expCardTitle');
       document.getElementById('exp-card-sub').textContent = t('expCardSub');
       document.getElementById('lbl-exp-dept').textContent = t('lblExpDept');
       document.getElementById('lbl-exp-single').textContent = t('btnExportSingle');
       document.getElementById('btn-export-all-lbl').textContent = t('btnExportAll');
-      document.getElementById('lbl-demo-hint').textContent = t('lblDemoHint');
-      document.getElementById('btn-load-demo').textContent = t('btnLoadDemo');
+      document.getElementById('exp-scope-hint').textContent = t('expScopeHint');
+      document.getElementById('lbl-clear-history').textContent = t('btnClearHistory');
+
       document.getElementById('dict-card-title').textContent = t('dictCardTitle');
       document.getElementById('dict-card-sub').textContent = t('dictCardSub');
+      document.getElementById('sup-mgr-title').textContent = t('supMgrTitle');
+      document.getElementById('sup-mgr-sub').textContent = t('supMgrSub');
+      document.getElementById('backup-title').textContent = t('backupTitle');
+      document.getElementById('backup-sub').textContent = t('backupSub');
+      document.getElementById('btn-export-backup-lbl').textContent = t('btnExportBackup');
+      document.getElementById('btn-import-backup-lbl').textContent = t('btnImportBackup');
+      document.getElementById('install-title').textContent = t('installTitle');
+      document.getElementById('install-guide').textContent = t('installGuide');
+      document.getElementById('btn-install-lbl').textContent = t('btnInstallPwa');
       document.getElementById('iconpack-title').textContent = t('iconpackTitle');
       document.getElementById('iconpack-sub').textContent = t('iconpackSub');
-      document.getElementById('iconpack-guide').textContent = t('iconpackGuide');
       document.getElementById('iconpack-dept-lbl').textContent = t('iconpackDeptLbl');
       document.getElementById('iconpack-btn-lbl').textContent = t('iconpackBtnLbl');
 
@@ -1353,25 +1610,145 @@
       document.getElementById('lbl-edit-tpl').textContent = t('lblEditTpl');
       document.getElementById('btn-delete-item').textContent = t('btnDeleteItem');
       document.getElementById('btn-save-item-edit').textContent = t('btnSaveItemEdit');
+
+      document.getElementById('modal-sup-title').textContent = t('modalSupTitle');
+      document.getElementById('lbl-edit-sup').textContent = t('lblEditSup');
+      document.getElementById('btn-cancel-sup-edit').textContent = t('btnCancel');
+      document.getElementById('btn-save-sup-edit').textContent = t('btnSaveItemEdit');
+
+      document.getElementById('restore-title').textContent = t('backupModalTitle');
+      document.getElementById('restore-date-lbl').textContent = t('backupDateLbl');
+      document.getElementById('btn-restore-merge').textContent = t('btnMergeRestore');
+      document.getElementById('btn-restore-replace').textContent = t('btnReplaceRestore');
+      document.getElementById('btn-cancel-restore').textContent = t('btnCancel');
+
+      document.getElementById('ios-title').textContent = t('installIosTitle');
+      document.getElementById('ios-step1').textContent = t('installIosStep1');
+      document.getElementById('ios-step2').textContent = t('installIosStep2');
+      document.getElementById('ios-step3').textContent = t('installIosStep3');
+    }
+
+    function sortedSuppliers() {
+      return [...state.suppliers].sort((a, b) => (b.count || 0) - (a.count || 0) || (b.lastUsed || 0) - (a.lastUsed || 0));
+    }
+
+    /* Auto-save / dedupe supplier on every saved weighing record. */
+    function touchSupplier(rawName) {
+      const name = String(rawName || '').trim();
+      if (!name) return;
+      const now = Date.now();
+      const found = state.suppliers.find(s => s.name && s.name.toLowerCase() === name.toLowerCase());
+      if (found) {
+        found.count = (found.count || 0) + 1;
+        found.lastUsed = now;
+        if (found.name !== name) found.name = name;
+      } else {
+        state.suppliers.push({ name, count: 1, lastUsed: now });
+      }
     }
 
     function renderSuppliers() {
-      const dl = document.getElementById('supplier-datalist');
-      dl.innerHTML = state.suppliers.map(s => `<option value="${escapeHtml(s)}"></option>`).join('');
-
       const bar = document.getElementById('recent-suppliers-bar');
-      if (state.suppliers.length === 0) {
+      const top = sortedSuppliers().slice(0, 8);
+      if (top.length === 0) {
         bar.classList.add('hidden');
+        bar.innerHTML = '';
       } else {
         bar.classList.remove('hidden');
-        bar.innerHTML = state.suppliers.slice(0, 6).map(s => `
-          <button type="button" data-sup="${escapeHtml(s)}"
-            class="sup-chip shrink-0 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition ${state.supplier === s ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
-            ${escapeHtml(s)}
+        bar.innerHTML = top.map(s => `
+          <button type="button" data-sup="${escapeHtml(s.name)}"
+            class="sup-chip shrink-0 min-h-[48px] px-3 rounded-full text-[11px] font-bold border transition flex items-center gap-1 ${state.supplier === s.name ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+            ${escapeHtml(s.name)}
+            <span class="text-[9px] font-extrabold opacity-70 tabular-nums">×${s.count || 1}</span>
           </button>
         `).join('');
       }
       document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
+      renderSupplierSuggest();
+    }
+
+    function renderSupplierSuggest() {
+      const box = document.getElementById('supplier-suggest');
+      if (!box) return;
+      const q = String(state.supplier || '').trim().toLowerCase();
+      if (!q) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+      const matches = sortedSuppliers()
+        .filter(s => s.name.toLowerCase().includes(q) && s.name.toLowerCase() !== q)
+        .slice(0, 6);
+      if (matches.length === 0) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+      box.innerHTML = matches.map(s => `
+        <button type="button" data-sup-suggest="${escapeHtml(s.name)}"
+          class="sup-suggest w-full min-h-[48px] px-3.5 flex items-center justify-between gap-2 text-left border-b border-slate-100 last:border-b-0 hover:bg-emerald-50/60 transition">
+          <span class="text-sm font-bold text-slate-800 truncate">${escapeHtml(s.name)}</span>
+          <span class="text-[10px] font-extrabold text-slate-400 shrink-0 tabular-nums">×${s.count || 1}</span>
+        </button>
+      `).join('');
+      box.classList.remove('hidden');
+    }
+
+    function renderSupplierManager() {
+      const listEl = document.getElementById('supplier-mgr-list');
+      if (!listEl) return;
+      const badge = document.getElementById('sup-mgr-count');
+      if (badge) badge.textContent = state.suppliers.length;
+      if (state.suppliers.length === 0) {
+        listEl.innerHTML = `<div class="py-6 text-center text-xs font-semibold text-slate-400">${t('supEmpty')}</div>`;
+        return;
+      }
+      listEl.innerHTML = sortedSuppliers().map(s => `
+        <div class="py-2.5 flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(s.name)}</div>
+            <div class="text-[10px] font-bold text-slate-500 mt-0.5 tabular-nums">${t('supUseCount', { n: s.count || 1 })} · ${fmtDay(s.lastUsed)}</div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button type="button" data-sup-rename="${escapeHtml(s.name)}"
+              class="sup-rename-btn h-12 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition">
+              <span class="w-3.5 h-3.5">${SVG_ICONS.pencil}</span><span>${t('btnRename')}</span>
+            </button>
+            <button type="button" data-sup-delete="${escapeHtml(s.name)}"
+              class="sup-del-btn w-12 h-12 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-600 flex items-center justify-center transition">
+              <span class="w-4 h-4">${SVG_ICONS.trash}</span>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openSupplierRenameModal(oldName) {
+      document.getElementById('edit-sup-old').value = oldName;
+      document.getElementById('edit-sup-name').value = oldName;
+      document.getElementById('modal-edit-supplier').classList.remove('hidden');
+    }
+
+    function saveSupplierRename() {
+      const oldName = document.getElementById('edit-sup-old').value;
+      const newName = document.getElementById('edit-sup-name').value.trim();
+      if (!newName) { showToast(t('toastNeedName'), 'error'); return; }
+      const dup = state.suppliers.find(s => s.name.toLowerCase() === newName.toLowerCase() && s.name.toLowerCase() !== oldName.toLowerCase());
+      if (dup) { showToast(t('toastSupExists'), 'error'); return; }
+      const sup = state.suppliers.find(s => s.name.toLowerCase() === oldName.toLowerCase());
+      if (sup) sup.name = newName;
+      saveStorage();
+      document.getElementById('modal-edit-supplier').classList.add('hidden');
+      renderSuppliers();
+      renderSupplierManager();
+      showToast(t('toastSupRenamed'), 'success');
+    }
+
+    function deleteSupplierByName(name) {
+      if (!name) return;
+      if (!confirm(t('confirmDelSupplier', { name }))) return;
+      state.suppliers = state.suppliers.filter(s => s.name !== name);
+      if (state.supplier === name) {
+        state.supplier = '';
+        document.getElementById('inp-supplier').value = '';
+      }
+      saveStorage();
+      renderSuppliers();
+      renderSupplierManager();
+      renderBackupStatus();
+      showToast(t('toastSupDeleted'), 'success');
     }
 
     function getItemDisplayName(item, langOverride = null) {
@@ -1397,7 +1774,7 @@
         const active = state.selectedItemId === it.id;
         return `
           <button type="button" data-item-id="${it.id}"
-            class="quick-item-btn h-10 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200'}">
+            class="quick-item-btn h-12 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200'}">
             <span>${escapeHtml(getItemDisplayName(it))}</span>
             <span class="text-[10px] opacity-75">[${it.template}]</span>
           </button>
@@ -1405,37 +1782,86 @@
       }).join('');
     }
 
-    function renderDeptButtons() {
-      document.querySelectorAll('.dept-btn').forEach(btn => {
-        const d = btn.dataset.dept;
-        const active = d === state.dept;
-        btn.className = active
-          ? 'dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-emerald-600 text-white border-emerald-600 shadow-sm'
-          : 'dept-btn py-2.5 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1.5 bg-white text-slate-700 border-slate-300 hover:bg-slate-50';
-      });
+    /* ==== Department capsule bar (bottom dock layer 2, weigh page only) ==== */
+    const DEPT_CAPSULES = [
+      { key: 'produce', labelKey: 'deptProduce', icon: 'dept_produce', activeCls: 'bg-emerald-600 text-white border-emerald-600 shadow-sm' },
+      { key: 'meat_beef', labelKey: 'subBeef', icon: 'sub_beef', activeCls: 'bg-rose-700 text-white border-rose-700 shadow-sm' },
+      { key: 'meat_pork', labelKey: 'subPork', icon: 'sub_pork', activeCls: 'bg-amber-700 text-white border-amber-700 shadow-sm' },
+      { key: 'meat_chicken', labelKey: 'subChicken', icon: 'sub_chicken', activeCls: 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm' },
+      { key: 'charcuteria', labelKey: 'deptCharcuteria', icon: 'dept_charcuteria', activeCls: 'bg-indigo-600 text-white border-indigo-600 shadow-sm' }
+    ];
 
-      const subBar = document.getElementById('meat-sub-bar');
-      subBar.classList.toggle('hidden', state.dept !== 'meat');
+    function setDeptByKey(key) {
+      if (key === 'produce') {
+        state.dept = 'produce';
+        state.subDept = 'beef';
+      } else if (key === 'charcuteria') {
+        state.dept = 'charcuteria';
+        state.subDept = 'beef';
+      } else if (key.startsWith('meat_')) {
+        state.dept = 'meat';
+        state.subDept = key.slice(5);
+      }
+      state.selectedItemId = null;
+      state.itemNameInput = '';
+      const inp = document.getElementById('inp-item-name');
+      if (inp) inp.value = '';
+      const def = getDefaultTemplateForDept(state.dept, state.subDept);
+      state.template = def.tpl;
+      state.form = createBlankFormState(def.tpl, def.mode);
+      renderDeptCapsules();
+      renderQuickItems();
+      renderWeighingForm();
+      updateHdrTitle();
+    }
 
-      const subColors = {
-        beef: 'bg-rose-700 text-white border-rose-700',
-        pork: 'bg-amber-700 text-white border-amber-700',
-        chicken: 'bg-amber-500 text-slate-950 border-amber-500'
-      };
-      document.querySelectorAll('.sub-btn').forEach(btn => {
-        const s = btn.dataset.sub;
-        const active = s === state.subDept;
-        btn.className = active
-          ? `sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 ${subColors[s]}`
-          : 'sub-btn py-2 px-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center gap-1 bg-white text-slate-700 border-slate-300 hover:bg-slate-50';
-      });
+    function renderDeptCapsules() {
+      const scroll = document.getElementById('dept-capsule-scroll');
+      if (!scroll) return;
+      const cur = getDeptKey();
+      scroll.innerHTML = DEPT_CAPSULES.map(c => {
+        const active = c.key === cur;
+        return `
+          <button type="button" data-deptkey="${c.key}"
+            class="dept-capsule shrink-0 h-12 px-3.5 rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 ${active ? c.activeCls : 'bg-white/90 text-slate-700 border-slate-200 hover:bg-white'}">
+            <span class="w-[18px] h-[18px] shrink-0">${SVG_ICONS[c.icon] || ''}</span>
+            <span>${t(c.labelKey)}</span>
+          </button>
+        `;
+      }).join('');
+      const act = [...scroll.querySelectorAll('.dept-capsule')].find(b => b.dataset.deptkey === cur);
+      if (act) act.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+      renderTplButtons();
+    }
 
+    function renderTplButtons() {
       document.querySelectorAll('.tpl-switch-btn').forEach(btn => {
         const active = btn.dataset.tpl === state.template;
         btn.className = active
           ? 'tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition bg-slate-900 text-white border-slate-900'
           : 'tpl-switch-btn p-2.5 rounded-xl border text-left text-xs font-bold transition bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
       });
+    }
+
+    function updateHdrTitle() {
+      const el = document.getElementById('hdr-title');
+      if (!el) return;
+      let label;
+      if (state.activeTab === 'weigh') {
+        if (state.dept === 'meat') {
+          const subLabel = state.subDept === 'beef' ? t('subBeef') : state.subDept === 'pork' ? t('subPork') : t('subChicken');
+          label = `${t('deptMeat')} · ${subLabel}`;
+        } else {
+          label = state.dept === 'produce' ? t('deptProduce') : t('deptCharcuteria');
+        }
+      } else if (state.activeTab === 'bill') {
+        label = t('tabBill');
+      } else if (state.activeTab === 'history') {
+        label = t('tabHistory');
+      } else {
+        label = t('tabSettings');
+      }
+      el.textContent = label;
     }
 
     /***************************************************************************
@@ -1463,13 +1889,13 @@
             ];
 
         container.innerHTML = `
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
             <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
-              <button type="button" data-amode="crate" class="amode-btn h-10 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+              <button type="button" data-amode="crate" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
                 <span class="w-4 h-4">${SVG_ICONS.crate}</span>
                 <span>${t('modeCrate')}</span>
               </button>
-              <button type="button" data-amode="kg" class="amode-btn h-10 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+              <button type="button" data-amode="kg" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
                 <span class="w-4 h-4">${SVG_ICONS.scale}</span>
                 <span>${t('modeKg')}</span>
               </button>
@@ -1506,7 +1932,7 @@
             `}
           </section>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <span class="w-4 h-4 text-emerald-700">${SVG_ICONS.scale}</span>
@@ -1532,13 +1958,13 @@
               `).join('')}
             </div>
             <button type="button" id="btn-add-gross"
-              class="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-500 text-slate-600 hover:text-emerald-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              class="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 hover:border-emerald-500 text-slate-600 hover:text-emerald-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span class="w-4 h-4">${SVG_ICONS.plus}</span>
               <span>${t('btnAddScale')}</span>
             </button>
           </section>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-1.5">
                 <span class="w-4 h-4 text-amber-700">${SVG_ICONS.crate}</span>
@@ -1550,7 +1976,7 @@
             <div class="flex flex-wrap gap-1.5">
               ${presets.map(p => `
                 <button type="button" data-preset-tare="${p.w}"
-                  class="preset-tare-btn px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-200 text-[11px] font-bold transition">
+                  class="preset-tare-btn min-h-[48px] px-3 rounded-lg bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-200 text-[11px] font-bold transition flex items-center">
                   ${p.label}
                 </button>
               `).join('')}
@@ -1578,7 +2004,7 @@
             </div>
 
             <button type="button" id="btn-add-tare"
-              class="w-full h-11 rounded-xl border-2 border-dashed border-slate-300 hover:border-amber-500 text-slate-600 hover:text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              class="w-full h-12 rounded-xl border-2 border-dashed border-slate-300 hover:border-amber-500 text-slate-600 hover:text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span class="w-4 h-4">${SVG_ICONS.crate}</span>
               <span>${t('btnAddTare')}</span>
             </button>
@@ -1597,7 +2023,7 @@
 
           <div class="space-y-3">
             ${f.cows.map((cow, idx) => `
-              <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+              <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-extrabold text-rose-800 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-lg">
                     ${t('cowTitle', { n: idx + 1 })}
@@ -1643,9 +2069,9 @@
             <span>${t('btnAddCow')}</span>
           </button>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
             <button type="button" id="btn-toggle-offal"
-              class="w-full h-11 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasOffal ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+              class="w-full h-12 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasOffal ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
               <span class="w-4 h-4">${f.hasOffal ? SVG_ICONS.checkSave : SVG_ICONS.plus}</span>
               <span>${f.hasOffal ? t('lblOffalSec') : t('btnToggleOffal')}</span>
             </button>
@@ -1673,7 +2099,7 @@
             <span>${t('lblPorkNote')}</span>
           </div>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
             <div>
               <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblKgPrice')}</label>
               <input type="number" step="0.01" inputmode="decimal" data-bind="kgPrice" value="${escapeHtml(f.kgPrice)}" placeholder="0.00"
@@ -1699,21 +2125,21 @@
             </div>
 
             <button type="button" id="btn-add-round"
-              class="w-full h-11 rounded-xl border-2 border-dashed border-amber-300 hover:border-amber-500 text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              class="w-full h-12 rounded-xl border-2 border-dashed border-amber-300 hover:border-amber-500 text-amber-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span class="w-4 h-4">${SVG_ICONS.plus}</span>
               <span>${t('btnAddRound')}</span>
             </button>
           </section>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
             <div class="grid grid-cols-2 gap-2">
               <button type="button" id="btn-toggle-pork-tare"
-                class="h-11 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                class="h-12 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
                 <span class="w-3.5 h-3.5 shrink-0">${SVG_ICONS.crate}</span>
                 <span>${t('btnTogglePorkTare')}</span>
               </button>
               <button type="button" id="btn-toggle-pork-head"
-                class="h-11 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkHead ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+                class="h-12 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${f.hasPorkHead ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
                 <span class="w-3.5 h-3.5 shrink-0">${SVG_ICONS.plus}</span>
                 <span>${t('btnTogglePorkHead')}</span>
               </button>
@@ -1723,7 +2149,7 @@
               <div class="pt-1">
                 <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblPorkTare')}</label>
                 <input type="number" step="0.1" inputmode="decimal" data-bind="porkTare" value="${escapeHtml(f.porkTare)}" placeholder="0.0"
-                  class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+                  class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
               </div>
             ` : ''}
 
@@ -1732,9 +2158,9 @@
                 <div class="flex-1">
                   <label class="block text-[11px] font-bold text-slate-600 mb-1">${t('lblPorkHead')}</label>
                   <input type="number" inputmode="numeric" data-bind="porkHeads" value="${escapeHtml(f.porkHeads)}" placeholder="0"
-                    class="w-full h-11 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+                    class="w-full h-12 px-3 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
                 </div>
-                <div class="h-11 px-3 rounded-xl bg-slate-100 flex items-center text-xs font-bold text-slate-700 tabular-nums">
+                <div class="h-12 px-3 rounded-xl bg-slate-100 flex items-center text-xs font-bold text-slate-700 tabular-nums">
                   ${t('lblAvgWeight')}: <span id="c-avg-head" class="ml-1 text-slate-900">0.0 kg</span>
                 </div>
               </div>
@@ -1748,7 +2174,7 @@
             <span>${t('lblCharcNote')}</span>
           </div>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-3">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
             <div class="grid grid-cols-2 gap-2.5">
               <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">${t('lblKgPrice')}</label>
@@ -1781,15 +2207,15 @@
             </div>
 
             <button type="button" id="btn-add-charc-scale"
-              class="w-full h-11 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-500 text-indigo-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+              class="w-full h-12 rounded-xl border-2 border-dashed border-indigo-200 hover:border-indigo-500 text-indigo-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span class="w-4 h-4">${SVG_ICONS.plus}</span>
               <span>${t('btnAddScale')}</span>
             </button>
           </section>
 
-          <section class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
+          <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-2.5">
             <button type="button" id="btn-toggle-charc-tare"
-              class="w-full h-11 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasCharcTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
+              class="w-full h-12 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5 ${f.hasCharcTare ? 'bg-slate-800 text-white border-slate-800' : 'bg-slate-50 text-slate-700 border-slate-300'}">
               <span class="w-4 h-4">${SVG_ICONS.crate}</span>
               <span>${f.hasCharcTare ? t('lblTareSec') : t('btnToggleCharcTare')}</span>
             </button>
@@ -1799,21 +2225,21 @@
                 ${f.charcTareRows.map((row, idx) => `
                   <div class="flex items-center gap-1.5">
                     <input type="number" inputmode="numeric" data-ctare-idx="${idx}" data-ctare-field="count" value="${escapeHtml(row.count)}" placeholder="${t('crateCountPh')}"
-                      class="ctare-inp w-20 h-11 px-2.5 rounded-xl border border-slate-300 text-sm font-extrabold text-center tabular-nums outline-none" />
+                      class="ctare-inp w-20 h-12 px-2.5 rounded-xl border border-slate-300 text-sm font-extrabold text-center tabular-nums outline-none" />
                     <span class="text-slate-400 font-bold text-xs">×</span>
                     <div class="relative flex-1">
                       <input type="number" step="0.05" inputmode="decimal" data-ctare-idx="${idx}" data-ctare-field="unitWeight" value="${escapeHtml(row.unitWeight)}" placeholder="${t('crateUnitPh')}"
-                        class="ctare-inp w-full h-11 px-3 pr-8 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
+                        class="ctare-inp w-full h-12 px-3 pr-8 rounded-xl border border-slate-300 text-sm font-extrabold tabular-nums outline-none" />
                       <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-[11px] font-bold text-slate-400">kg</span>
                     </div>
                     ${f.charcTareRows.length > 1 ? `
-                      <button type="button" data-del-ctare="${idx}" class="del-ctare-btn w-9 h-11 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs shrink-0 flex items-center justify-center">
+                      <button type="button" data-del-ctare="${idx}" class="del-ctare-btn w-9 h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-xs shrink-0 flex items-center justify-center">
                         <span class="w-3.5 h-3.5">${SVG_ICONS.close}</span>
                       </button>
                     ` : ''}
                   </div>
                 `).join('')}
-                <button type="button" id="btn-add-ctare" class="w-full h-10 rounded-xl border border-dashed border-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center gap-1">
+                <button type="button" id="btn-add-ctare" class="w-full h-12 rounded-xl border border-dashed border-slate-300 text-slate-600 text-xs font-bold flex items-center justify-center gap-1">
                   <span class="w-3.5 h-3.5">${SVG_ICONS.plus}</span>
                   <span>${t('btnAddTare')}</span>
                 </button>
@@ -1878,7 +2304,7 @@
               if (calc.initialShortage <= 0) {
                 const diffStr = calc.weightDiff >= 0 ? `+${fmtKg(calc.weightDiff)}` : fmtKg(calc.weightDiff);
                 statusBox.innerHTML = `
-                  <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-extrabold">
+                  <div class="p-3.5 rounded-[14px] bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-extrabold">
                     ${t('statusOkFull', { diff: diffStr })}
                   </div>
                 `;
@@ -1886,7 +2312,7 @@
                 const isReplenished = calc.remainingShortage <= 0;
                 const deductAmt = round2(calc.finalNet * calc.nominalUnitPrice);
                 statusBox.innerHTML = `
-                  <div class="p-3.5 rounded-2xl ${isReplenished ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} border space-y-2.5">
+                  <div class="p-3.5 rounded-[14px] ${isReplenished ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'} border space-y-2.5">
                     <div class="text-xs font-extrabold ${isReplenished ? 'text-emerald-800' : 'text-rose-800'}">
                       ${isReplenished
                         ? t('statusOkFull', { diff: (calc.weightDiff >= 0 ? '+' : '') + fmtKg(calc.weightDiff) })
@@ -1898,16 +2324,16 @@
                         <span>${t('lblReplenish')}</span>
                       </label>
                       <input id="inp-replenish-live" type="number" step="0.05" inputmode="decimal" value="${escapeHtml(state.form.replenishWeight)}" placeholder="0.0"
-                        class="w-full h-11 px-3 rounded-xl border border-slate-300 bg-white text-sm font-extrabold tabular-nums outline-none" />
+                        class="w-full h-12 px-3 rounded-xl border border-slate-300 bg-white text-sm font-extrabold tabular-nums outline-none" />
                     </div>
                     ${!isReplenished ? `
                       <div class="pt-1 border-t border-rose-200/80 space-y-1.5">
                         <div class="text-[11px] font-bold text-rose-800">${t('lblShortAction', { rem: fmtKg(calc.remainingShortage) })}</div>
                         <div class="grid grid-cols-2 gap-1.5">
-                          <button type="button" data-sact="full" class="sact-btn py-2 px-2 rounded-xl text-[11px] font-extrabold border transition ${state.form.shortageAction === 'full' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}">
+                          <button type="button" data-sact="full" class="sact-btn min-h-[48px] px-2 rounded-xl text-[11px] font-extrabold border transition flex items-center justify-center ${state.form.shortageAction === 'full' ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-300'}">
                             ${t('optPayFull')} (${fmtMoney(calc.quotedAmount)})
                           </button>
-                          <button type="button" data-sact="deduct" class="sact-btn py-2 px-2 rounded-xl text-[11px] font-extrabold border transition ${state.form.shortageAction === 'deduct' ? 'bg-rose-700 text-white border-rose-700' : 'bg-white text-slate-700 border-slate-300'}">
+                          <button type="button" data-sact="deduct" class="sact-btn min-h-[48px] px-2 rounded-xl text-[11px] font-extrabold border transition flex items-center justify-center ${state.form.shortageAction === 'deduct' ? 'bg-rose-700 text-white border-rose-700' : 'bg-white text-slate-700 border-slate-300'}">
                             ${t('optDeductShort')} (${fmtMoney(deductAmt)})
                           </button>
                         </div>
@@ -2113,9 +2539,7 @@
       }
 
       const sup = state.supplier.trim();
-      if (sup && !state.suppliers.includes(sup)) {
-        state.suppliers.unshift(sup);
-      }
+      touchSupplier(sup);
 
       const now = new Date();
       const record = {
@@ -2141,7 +2565,8 @@
       state.form = createBlankFormState(def.tpl, def.mode);
 
       renderSuppliers();
-      renderDeptButtons();
+      renderSupplierManager();
+      renderDeptCapsules();
       renderQuickItems();
       renderWeighingForm();
       updateBillBadge();
@@ -2197,17 +2622,17 @@
       document.querySelectorAll('.bill-lang-btn').forEach(btn => {
         const active = btn.dataset.billLang === state.billLang;
         btn.className = active
-          ? 'bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm'
-          : 'bill-lang-btn px-2.5 py-1.5 rounded-lg text-xs font-bold text-slate-600';
+          ? 'bill-lang-btn px-2.5 h-12 rounded-lg text-xs font-bold bg-white text-slate-900 shadow-sm flex items-center justify-center'
+          : 'bill-lang-btn px-2.5 h-12 rounded-lg text-xs font-bold text-slate-600 flex items-center justify-center';
       });
 
       const sw = document.getElementById('btn-toggle-hide-cost');
       const knob = document.getElementById('toggle-cost-knob');
       if (state.hideCost) {
-        sw.className = 'w-12 h-7 rounded-full bg-emerald-600 p-1 transition relative shrink-0';
-        knob.style.transform = 'translateX(20px)';
+        sw.className = 'w-14 h-8 rounded-full bg-emerald-600 p-1 transition relative shrink-0';
+        knob.style.transform = 'translateX(24px)';
       } else {
-        sw.className = 'w-12 h-7 rounded-full bg-slate-300 p-1 transition relative shrink-0';
+        sw.className = 'w-14 h-8 rounded-full bg-slate-300 p-1 transition relative shrink-0';
         knob.style.transform = 'translateX(0px)';
       }
 
@@ -2243,7 +2668,7 @@
             </div>
             <div class="text-right shrink-0 flex flex-col items-end gap-1">
               <span class="text-sm font-extrabold text-slate-900 tabular-nums">${fmtMoney(rec.calc.billedAmount)}</span>
-              <button type="button" data-del-rec="${rec.id}" class="del-rec-btn text-[11px] font-bold text-rose-500 hover:text-rose-700">
+              <button type="button" data-del-rec="${rec.id}" class="del-rec-btn min-h-[48px] px-2 -mr-1 flex items-center text-[11px] font-bold text-rose-500 hover:text-rose-700">
                 ${state.lang === 'es' ? 'Quitar' : '删除'}
               </button>
             </div>
@@ -2264,32 +2689,33 @@
       });
     }
 
-    function renderExportAndDictView() {
+    /* Shared department badge styles (history list & dictionary rows) */
+    const DEPT_BADGES = {
+      produce: { zh: '蔬菜水果', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      meat_beef: { zh: '牛肉', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
+      meat_pork: { zh: '猪肉', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
+      meat_chicken: { zh: '鸡肉', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
+      charcuteria: { zh: 'Charcutería', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+    };
+
+    function renderSettingsView() {
       const listEl = document.getElementById('dict-items-list');
       document.getElementById('dict-count-badge').textContent = state.items.length;
 
-      const deptBadges = {
-        produce: { zh: '蔬菜水果', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-        meat_beef: { zh: '牛肉', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
-        meat_pork: { zh: '猪肉', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
-        meat_chicken: { zh: '鸡肉', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
-        charcuteria: { zh: 'Charcutería', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
-      };
-
       listEl.innerHTML = state.items.map(it => {
         const dk = it.dept === 'meat' ? `meat_${it.subDept}` : it.dept;
-        const b = deptBadges[dk] || deptBadges.produce;
+        const b = DEPT_BADGES[dk] || DEPT_BADGES.produce;
         return `
           <div class="py-2.5 flex items-center justify-between gap-2">
             <div class="min-w-0">
               <div class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(getItemDisplayName(it, 'bi'))}</div>
               <div class="flex items-center gap-1.5 mt-1">
                 <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${b.zh}</span>
-                <span class="text-[10px] font-bold text-slate-500">模板 ${it.template}</span>
+                <span class="text-[10px] font-bold text-slate-500">${state.lang === 'es' ? 'Plantilla' : '模板'} ${it.template}</span>
               </div>
             </div>
             <button type="button" data-edit-item="${it.id}"
-              class="edit-item-btn px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0">
+              class="edit-item-btn h-12 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold shrink-0 flex items-center">
               ${state.lang === 'es' ? 'Editar' : '编辑'}
             </button>
           </div>
@@ -2300,8 +2726,7 @@
         btn.addEventListener('click', () => openEditItemModal(btn.dataset.editItem));
       });
 
-      // Render Icon Pack Showcase
-      document.getElementById('preview-homescreen-icon').innerHTML = SVG_ICONS.appIcon;
+      renderSupplierManager();
 
       const deptPreviewItems = [
         { label: '蔬菜水果', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', svg: SVG_ICONS.dept_produce },
@@ -2712,7 +3137,7 @@
       ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 5 }];
     }
 
-    async function exportExcelWorkbook(deptFilter = null) {
+    async function exportExcelWorkbook(deptFilter = null, records = null) {
       if (typeof ExcelJS === 'undefined') {
         showToast('ExcelJS library not loaded', 'error');
         return;
@@ -2724,9 +3149,10 @@
       wb.creator = 'Receiving App';
       wb.created = new Date();
 
+      const srcRecords = Array.isArray(records) ? records : state.records;
       let sheetsAdded = 0;
       targetDepts.forEach(dk => {
-        const recs = state.records.filter(r => r.deptKey === dk);
+        const recs = srcRecords.filter(r => r.deptKey === dk);
         if (recs.length > 0) {
           buildDepartmentSheet(wb, dk, recs);
           sheetsAdded++;
@@ -2770,170 +3196,487 @@
       showToast(t('toastExcelReady'), 'success');
     }
 
-    function loadDemoRecordsForTesting() {
-      const today = new Date().toISOString().slice(0, 10);
-      const demo = [
-        {
-          id: 'demo_1', date: today, time: '08:15', supplier: '—', deptKey: 'produce',
-          itemZh: '番茄', itemEs: 'Tomate', template: 'A',
-          calc: {
-            tpl: 'A', priceMode: 'crate', quotedCrates: 5, cratePrice: 30, stdWeight: 30,
-            expectedNet: 150, nominalUnitPrice: 1, grossTotal: 150, tareTotal: 7.8,
-            initialNet: 142.2, replenish: 8.0, finalNet: 150.2, weightDiff: 0.2,
-            initialShortage: 7.8, remainingShortage: 0, billedAmount: 150.0, quotedAmount: 150.0, realUnitCost: 1.00
-          }
-        },
-        {
-          id: 'demo_2', date: today, time: '08:25', supplier: '—', deptKey: 'produce',
-          itemZh: '洋葱', itemEs: 'Cebolla', template: 'A',
-          calc: {
-            tpl: 'A', priceMode: 'crate', quotedCrates: 4, cratePrice: 25, stdWeight: 25,
-            expectedNet: 100, nominalUnitPrice: 1, grossTotal: 101.2, tareTotal: 4.8,
-            initialNet: 96.4, replenish: 0, finalNet: 96.4, weightDiff: -3.6,
-            initialShortage: 3.6, remainingShortage: 3.6, billedAmount: 96.4, quotedAmount: 100.0, realUnitCost: 1.00
-          }
-        },
-        {
-          id: 'demo_3', date: today, time: '09:00', supplier: '—', deptKey: 'meat_beef',
-          itemZh: '整牛', itemEs: 'Res entera', template: 'B',
-          calc: {
-            tpl: 'B', validHeads: 2, beefNet: 512.4, beefAmount: 2280.18,
-            cowDetails: [
-              { halfA: 132.5, halfB: 131.0, headW: 263.5, unitPrice: 4.50, headAmt: 1185.75 },
-              { halfA: 124.2, halfB: 124.7, headW: 248.9, unitPrice: 4.40, headAmt: 1095.16 }
-            ],
-            hasOffal: true, offalSets: 2, offalPrice: 35, offalAmount: 70,
-            finalNet: 512.4, billedAmount: 2350.18, realUnitCost: 4.45
-          }
-        },
-        {
-          id: 'demo_4', date: today, time: '09:30', supplier: '—', deptKey: 'meat_pork',
-          itemZh: '整猪', itemEs: 'Cerdo entero', template: 'C',
-          calc: {
-            tpl: 'C', rounds: [185.5, 192.0], grossTotal: 377.5, tare: 0,
-            finalNet: 377.5, kgPrice: 3.20, heads: 4, avgHeadWeight: 94.38,
-            billedAmount: 1208.00, realUnitCost: 3.20
-          }
-        },
-        {
-          id: 'demo_5', date: today, time: '10:00', supplier: '—', deptKey: 'meat_chicken',
-          itemZh: '鸡胸', itemEs: 'Pechuga', template: 'A',
-          calc: {
-            tpl: 'A', priceMode: 'kg', quotedCrates: 0, cratePrice: 0, stdWeight: 0,
-            expectedNet: 0, nominalUnitPrice: 0, kgPrice: 3.80, grossTotal: 64.5, tareTotal: 4.5,
-            initialNet: 60.0, replenish: 0, finalNet: 60.0, weightDiff: 0,
-            initialShortage: 0, remainingShortage: 0, billedAmount: 228.00, quotedAmount: 228.00, realUnitCost: 3.80
-          }
-        },
-        {
-          id: 'demo_6', date: today, time: '10:20', supplier: '—', deptKey: 'charcuteria',
-          itemZh: '火腿', itemEs: 'Jamón', template: 'D',
-          calc: {
-            tpl: 'D', grossTotal: 28.4, tareTotal: 0, hasCharcTare: false,
-            finalNet: 28.4, kgPrice: 6.50, pieces: 6, billedAmount: 184.60, realUnitCost: 6.50
-          }
-        }
-      ];
-
-      state.records = [...state.records, ...demo];
-      saveStorage();
-      updateBillBadge();
-      showToast(t('toastDemoLoaded'), 'success');
-    }
-
-    /***************************************************************************
+    /*****************************************************************************
      * 9. INITIALIZATION & GLOBAL EVENT LISTENERS
      ***************************************************************************/
-    function switchTab(tabName) {
-      state.activeTab = tabName;
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-        const active = btn.dataset.tab === tabName;
-        btn.className = active
-          ? 'nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 bg-emerald-600 text-white shadow'
-          : 'nav-tab-btn py-2.5 px-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 text-slate-300 hover:text-white';
-      });
+    /* ================== TABS, DOCK, HISTORY, BACKUP, INSTALL ================== */
 
+    function setTab(tabName) {
+      state.activeTab = tabName;
+      document.querySelectorAll('.dock-tab').forEach(btn => {
+        const active = btn.dataset.tab === tabName;
+        btn.classList.toggle('dock-tab-active', active);
+        btn.classList.toggle('text-emerald-400', active);
+        btn.classList.toggle('text-slate-400', !active);
+      });
       document.getElementById('view-weigh').classList.toggle('hidden', tabName !== 'weigh');
       document.getElementById('view-bill').classList.toggle('hidden', tabName !== 'bill');
-      document.getElementById('view-export').classList.toggle('hidden', tabName !== 'export');
+      document.getElementById('view-history').classList.toggle('hidden', tabName !== 'history');
+      document.getElementById('view-settings').classList.toggle('hidden', tabName !== 'settings');
 
+      /* Department capsule bar only on the weigh page */
+      document.getElementById('dept-capsule-bar').classList.toggle('hidden', tabName !== 'weigh');
+
+      /* Reserve space above the fixed dock: weigh page (capsule bar + tab bar) vs others */
+      const pad = tabName === 'weigh'
+        ? 'calc(138px + env(safe-area-inset-bottom))'
+        : 'calc(90px + env(safe-area-inset-bottom))';
+      ['view-weigh', 'view-bill', 'view-history', 'view-settings'].forEach(id => {
+        document.getElementById(id).style.paddingBottom = pad;
+      });
+
+      updateHdrTitle();
       if (tabName === 'bill') renderBillView();
-      if (tabName === 'export') renderExportAndDictView();
+      if (tabName === 'history') renderHistoryView();
+      if (tabName === 'settings') renderSettingsView();
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      installHomeScreenIconAndManifest();
-      mountStaticIcons();
-      loadStorage();
+    function archiveCurrentBill() {
+      if (state.records.length === 0) { showToast(t('emptyBill'), 'warn'); return; }
+      const now = Date.now();
+      state.history = state.records.map(r => ({ ...r, archivedAt: now })).concat(state.history);
+      state.records = [];
+      saveStorage();
+      updateBillBadge();
+      renderBillView();
+      renderBackupStatus();
+      showToast(t('toastArchived'), 'success');
+    }
+
+    function purgeCurrentBill() {
+      if (state.records.length === 0) { showToast(t('emptyBill'), 'warn'); return; }
+      if (!confirm(t('confirmPurgeBill'))) return;
+      state.records = [];
+      saveStorage();
+      updateBillBadge();
+      renderBillView();
+      renderBackupStatus();
+      showToast(t('toastBillCleared'), 'success');
+    }
+
+    function fmtDay(ts) {
+      const n = Number(ts);
+      if (!Number.isFinite(n) || n <= 0) return '—';
+      try { return new Date(n).toISOString().slice(0, 10); } catch { return '—'; }
+    }
+
+    function renderHistoryView() {
+      const sel = document.getElementById('sel-his-dept');
+      if (!sel) return;
+      const q = document.getElementById('inp-his-search').value.trim().toLowerCase();
+      const dk = sel.value;
+      let list = state.history.filter(r => dk === 'all' || r.deptKey === dk);
+      if (q) {
+        list = list.filter(r =>
+          (r.itemZh || '').toLowerCase().includes(q) ||
+          (r.itemEs || '').toLowerCase().includes(q) ||
+          (r.supplier || '').toLowerCase().includes(q));
+      }
+      list = [...list].sort((a, b) => (b.archivedAt || 0) - (a.archivedAt || 0));
+
+      document.getElementById('his-count-badge').textContent = t('hisCount', { n: list.length });
+      const totNet = round2(list.reduce((s, r) => s + ((r.calc && r.calc.finalNet) || 0), 0));
+      const totAmt = round2(list.reduce((s, r) => s + ((r.calc && r.calc.billedAmount) || 0), 0));
+      document.getElementById('his-tot-net').textContent = `${t('hisTotNet')}: ${fmtKg(totNet)} kg`;
+      document.getElementById('his-tot-amt').textContent = `${t('hisTotAmt')}: ${fmtMoney(totAmt)}`;
+
+      const listEl = document.getElementById('history-list');
+      if (list.length === 0) {
+        listEl.innerHTML = `<div class="bg-white rounded-[14px] border border-dashed border-slate-300 p-8 text-center text-xs font-semibold text-slate-400">${t('hisEmpty')}</div>`;
+        return;
+      }
+
+      listEl.innerHTML = list.map(rec => {
+        const { name, detail } = formatRecordSummary(rec, state.lang === 'es' ? 'es' : 'zh');
+        const b = DEPT_BADGES[rec.deptKey] || DEPT_BADGES.produce;
+        return `
+          <div class="bg-white rounded-[14px] border border-slate-200/80 shadow-sm px-3.5 py-3 flex items-start justify-between gap-2">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${b.zh}</span>
+                <span class="text-[11px] text-slate-400 tabular-nums">${escapeHtml(rec.date || '')} ${escapeHtml(rec.time || '')}</span>
+                <span class="text-[11px] text-slate-500 truncate max-w-[150px]">${escapeHtml(rec.supplier || '—')}</span>
+              </div>
+              <div class="text-sm font-extrabold text-slate-900 mt-1 truncate">${escapeHtml(name)}</div>
+              <div class="text-xs text-slate-600 mt-0.5 tabular-nums">${escapeHtml(detail)}</div>
+            </div>
+            <div class="text-right shrink-0 flex flex-col items-end gap-0.5">
+              <span class="text-sm font-extrabold text-slate-900 tabular-nums">${fmtMoney(rec.calc.billedAmount)}</span>
+              <span class="text-[11px] font-bold text-slate-500 tabular-nums">${fmtKg(rec.calc.finalNet)} kg</span>
+              <button type="button" data-del-his="${escapeHtml(rec.id || '')}" class="del-his-btn min-h-[48px] px-2 -mr-1 flex items-center text-[11px] font-bold text-rose-500 hover:text-rose-700">${t('btnDelRec')}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      listEl.querySelectorAll('.del-his-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (!btn.dataset.delHis) return;
+          if (!confirm(t('confirmDelRec'))) return;
+          state.history = state.history.filter(r => (r.id || '') !== btn.dataset.delHis);
+          saveStorage();
+          renderHistoryView();
+          renderBackupStatus();
+        });
+      });
+    }
+
+    /* ================== BACKUP & RESTORE ================== */
+
+    function renderBackupStatus() {
+      const statsEl = document.getElementById('backup-stats');
+      if (!statsEl) return;
+      statsEl.textContent = t('backupStatsTpl', {
+        items: state.items.length,
+        suppliers: state.suppliers.length,
+        history: state.history.length,
+        current: state.records.length
+      });
+      const lastEl = document.getElementById('backup-last');
+      const warnEl = document.getElementById('backup-warn');
+      const raw = localStorage.getItem(STORAGE_KEYS.BACKUP_AT);
+      const ts = raw ? Date.parse(raw) : NaN;
+      if (!Number.isFinite(ts)) {
+        lastEl.textContent = `${t('backupLastPrefix')}: ${t('backupNever')}`;
+        lastEl.className = 'text-xs font-semibold text-slate-500 tabular-nums';
+        warnEl.classList.add('hidden');
+      } else {
+        const days = (Date.now() - ts) / 86400000;
+        lastEl.textContent = `${t('backupLastPrefix')}: ${new Date(ts).toISOString().slice(0, 10)}`;
+        if (days >= 7) {
+          lastEl.className = 'text-xs font-bold text-amber-700 tabular-nums';
+          warnEl.textContent = t('backupSoonWarn');
+          warnEl.classList.remove('hidden');
+        } else {
+          lastEl.className = 'text-xs font-semibold text-slate-500 tabular-nums';
+          warnEl.classList.add('hidden');
+        }
+      }
+    }
+
+    function markBackedUp() {
+      localStorage.setItem(STORAGE_KEYS.BACKUP_AT, new Date().toISOString());
+      renderBackupStatus();
+    }
+
+    function buildBackupPayload() {
+      return {
+        app: 'pesos_receiving_pwa',
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        data: {
+          items: state.items,
+          suppliers: state.suppliers,
+          history: state.history,
+          current: state.records,
+          settings: { lang: state.lang, billLang: state.billLang, hideCost: state.hideCost }
+        }
+      };
+    }
+
+    async function exportBackup() {
+      try {
+        const json = JSON.stringify(buildBackupPayload());
+        const fileName = `pesos_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        const blob = new Blob([json], { type: 'application/json' });
+        const file = new File([blob], fileName, { type: blob.type });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file], title: fileName });
+            markBackedUp();
+            showToast(t('toastBackupDone'), 'success');
+            return;
+          } catch (err) {
+            if (err && err.name === 'AbortError') return;
+            /* share failed → fall through to direct download */
+          }
+        }
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+        markBackedUp();
+        showToast(t('toastBackupDone'), 'success');
+      } catch (err) {
+        showToast(t('backupInvalid'), 'error');
+      }
+    }
+
+    function handleBackupFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        let payload = null;
+        try { payload = JSON.parse(reader.result); } catch { payload = null; }
+        const d = payload && payload.data;
+        const valid = !!(payload && payload.app === 'pesos_receiving_pwa' && typeof payload.version === 'number'
+          && d && typeof d === 'object'
+          && Array.isArray(d.items) && Array.isArray(d.suppliers) && Array.isArray(d.history)
+          && d.settings && typeof d.settings === 'object');
+        if (!valid) { showToast(t('backupInvalid'), 'error'); return; }
+        pendingRestore = {
+          exportedAt: typeof payload.exportedAt === 'string' ? payload.exportedAt : '',
+          data: {
+            items: d.items,
+            suppliers: d.suppliers,
+            history: d.history,
+            current: Array.isArray(d.current) ? d.current : [],
+            settings: d.settings
+          }
+        };
+        document.getElementById('restore-date-val').textContent = pendingRestore.exportedAt ? pendingRestore.exportedAt.slice(0, 10) : '—';
+        document.getElementById('restore-counts').textContent = t('backupCountsTpl', {
+          items: d.items.length,
+          suppliers: d.suppliers.length,
+          history: d.history.length,
+          current: pendingRestore.data.current.length
+        });
+        document.getElementById('modal-restore').classList.remove('hidden');
+      };
+      reader.onerror = () => showToast(t('backupInvalid'), 'error');
+      reader.readAsText(file);
+    }
+
+    function mergeItems(base, extra) {
+      const map = new Map();
+      const keyOf = it => `${String((it && (it.zh || it.es)) || '').trim().toLowerCase()}|${it && it.dept === 'meat' ? 'meat_' + (it.subDept || '') : (it && it.dept) || ''}`;
+      const push = it => {
+        if (!it || typeof it !== 'object' || !(it.zh || it.es)) return;
+        const k = keyOf(it);
+        const cur = map.get(k);
+        if (!cur) { map.set(k, { ...it }); return; }
+        cur.usage = Math.max(cur.usage || 0, it.usage || 0);
+        if (!cur.zh && it.zh) cur.zh = it.zh;
+        if (!cur.es && it.es) cur.es = it.es;
+        if (!cur.template && it.template) cur.template = it.template;
+        if (!cur.defaultMode && it.defaultMode) cur.defaultMode = it.defaultMode;
+        if (!cur.subDept && it.subDept) cur.subDept = it.subDept;
+      };
+      base.forEach(push);
+      extra.forEach(push);
+      return [...map.values()];
+    }
+
+    function mergeSuppliers(base, extra) {
+      const map = new Map();
+      const push = s => {
+        if (!s || typeof s.name !== 'string' || !s.name.trim()) return;
+        const k = s.name.trim().toLowerCase();
+        const cur = map.get(k);
+        if (!cur) {
+          map.set(k, { name: s.name.trim(), count: Math.max(1, Number(s.count) || 1), lastUsed: Number(s.lastUsed) || 0 });
+          return;
+        }
+        cur.count = Math.max(cur.count, Number(s.count) || 1);
+        cur.lastUsed = Math.max(cur.lastUsed || 0, Number(s.lastUsed) || 0);
+      };
+      base.forEach(push);
+      extra.forEach(push);
+      return [...map.values()];
+    }
+
+    function mergeRecords(base, extra) {
+      const seen = new Set();
+      const out = [];
+      const keyOf = r => (r && r.id)
+        ? `id:${r.id}`
+        : [r && r.date, r && r.time, r && r.deptKey, r && r.itemZh, r && r.calc && r.calc.billedAmount].join('|');
+      const push = r => {
+        if (!r || !r.calc || !r.deptKey) return;
+        const k = keyOf(r);
+        if (seen.has(k)) return;
+        seen.add(k);
+        out.push(r);
+      };
+      base.forEach(push);
+      extra.forEach(push);
+      return out;
+    }
+
+    function applyRestore(mode) {
+      if (!pendingRestore) return;
+      const d = pendingRestore.data;
+      if (mode === 'replace') {
+        state.items = d.items.filter(it => it && (it.zh || it.es));
+        state.suppliers = d.suppliers.filter(s => s && typeof s.name === 'string' && s.name.trim());
+        state.history = d.history.filter(r => r && r.calc && r.deptKey);
+        state.records = d.current.filter(r => r && r.calc && r.deptKey);
+        if (d.settings.lang === 'zh' || d.settings.lang === 'es') state.lang = d.settings.lang;
+        if (['zh', 'es', 'bi'].includes(d.settings.billLang)) state.billLang = d.settings.billLang;
+        state.hideCost = !!d.settings.hideCost;
+      } else {
+        state.items = mergeItems(state.items, d.items);
+        state.suppliers = mergeSuppliers(state.suppliers, d.suppliers);
+        state.history = mergeRecords(state.history, d.history);
+        state.records = mergeRecords(state.records, d.current);
+      }
+      saveStorage();
+      pendingRestore = null;
+      document.getElementById('modal-restore').classList.add('hidden');
+      renderAll();
+      showToast(t('toastRestored'), 'success');
+    }
+
+    function renderAll() {
       applyStaticTranslations();
+      updateHdrTitle();
+      renderDeptCapsules();
       renderSuppliers();
-      renderDeptButtons();
+      renderSupplierManager();
       renderQuickItems();
       renderWeighingForm();
       updateBillBadge();
+      renderBillView();
+      renderHistoryView();
+      renderSettingsView();
+      renderBackupStatus();
+    }
+
+    /* ================== PWA INSTALL GUIDE ================== */
+
+    let deferredInstallPrompt = null;
+    function isIOS() {
+      return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+    function handleInstallClick() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.finally(() => { deferredInstallPrompt = null; });
+        return;
+      }
+      if (isIOS()) {
+        document.getElementById('modal-ios-install').classList.remove('hidden');
+        return;
+      }
+      showToast(t('installUseBrowserMenu'), 'warn');
+    }
+    window.addEventListener('beforeinstallprompt', e => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+    });
+    window.addEventListener('appinstalled', () => {
+      deferredInstallPrompt = null;
+      showToast(t('toastInstalled'), 'success');
+    });
+
+    /* ================== KEYBOARD vs DOCK (anti-occlusion) ================== */
+
+    let kbHideTimer = null;
+    let vvMaxHeight = 0;
+    function setDockHidden(hidden) {
+      const dock = document.getElementById('bottom-dock');
+      if (dock) dock.classList.toggle('kb-hidden', hidden);
+    }
+    function isEditable(el) {
+      return !!(el && el.matches && el.matches('input, textarea, select'));
+    }
+    function setupKeyboardDockHandling() {
+      document.addEventListener('focusin', e => {
+        if (isEditable(e.target)) setDockHidden(true);
+      });
+      document.addEventListener('focusout', () => {
+        clearTimeout(kbHideTimer);
+        kbHideTimer = setTimeout(() => {
+          if (!isEditable(document.activeElement)) setDockHidden(false);
+        }, 150);
+      });
+      if (window.visualViewport) {
+        vvMaxHeight = window.visualViewport.height;
+        window.visualViewport.addEventListener('resize', () => {
+          const vv = window.visualViewport;
+          vvMaxHeight = Math.max(vvMaxHeight, vv.height);
+          const keyboardLikely = vvMaxHeight - vv.height > 120;
+          if (keyboardLikely) {
+            setDockHidden(true);
+          } else if (!isEditable(document.activeElement)) {
+            setDockHidden(false);
+          }
+        });
+      }
+    }
+
+    function registerServiceWorker() {
+      const secure = location.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(location.hostname);
+      if (!('serviceWorker' in navigator) || !secure) return;
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => { window.__pesosSwReady = reg; })
+        .catch(err => console.warn('SW registration failed:', err));
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      mountStaticIcons();
+      loadStorage();
+      applyStaticTranslations();
+      renderDeptCapsules();
+      renderSuppliers();
+      renderQuickItems();
+      renderWeighingForm();
+      updateBillBadge();
+      renderBackupStatus();
+      setTab('weigh');
 
       document.getElementById('btn-lang-toggle').addEventListener('click', () => {
         state.lang = state.lang === 'zh' ? 'es' : 'zh';
         state.billLang = state.lang;
         saveStorage();
         applyStaticTranslations();
-        renderDeptButtons();
+        updateHdrTitle();
+        renderDeptCapsules();
+        renderSuppliers();
         renderQuickItems();
         renderWeighingForm();
+        renderSupplierManager();
         if (state.activeTab === 'bill') renderBillView();
-        if (state.activeTab === 'export') renderExportAndDictView();
+        if (state.activeTab === 'history') renderHistoryView();
+        if (state.activeTab === 'settings') renderSettingsView();
       });
 
-      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      document.querySelectorAll('.dock-tab').forEach(btn => {
+        btn.addEventListener('click', () => setTab(btn.dataset.tab));
+      });
+
+      document.getElementById('dept-capsule-scroll').addEventListener('click', e => {
+        const btn = e.target.closest('.dept-capsule');
+        if (!btn) return;
+        setDeptByKey(btn.dataset.deptkey);
+        btn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
       });
 
       const supInp = document.getElementById('inp-supplier');
+      const suggestBox = document.getElementById('supplier-suggest');
       supInp.addEventListener('input', e => {
         state.supplier = e.target.value;
         document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
+        renderSupplierSuggest();
       });
+      supInp.addEventListener('focus', () => renderSupplierSuggest());
+      supInp.addEventListener('blur', () => setTimeout(() => suggestBox.classList.add('hidden'), 180));
       document.getElementById('btn-clear-supplier').addEventListener('click', () => {
         state.supplier = '';
         supInp.value = '';
-        renderSuppliers();
+        renderSupplierSuggest();
+        document.getElementById('btn-clear-supplier').classList.add('hidden');
       });
       document.getElementById('recent-suppliers-bar').addEventListener('click', e => {
         const chip = e.target.closest('.sup-chip');
         if (!chip) return;
         state.supplier = chip.dataset.sup;
         supInp.value = state.supplier;
-        renderSuppliers();
+        renderSupplierSuggest();
+        document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
       });
-
-      document.querySelectorAll('.dept-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.dept = btn.dataset.dept;
-          state.selectedItemId = null;
-          state.itemNameInput = '';
-          document.getElementById('inp-item-name').value = '';
-          const def = getDefaultTemplateForDept(state.dept, state.subDept);
-          state.template = def.tpl;
-          state.form = createBlankFormState(def.tpl, def.mode);
-          renderDeptButtons();
-          renderQuickItems();
-          renderWeighingForm();
-        });
-      });
-
-      document.querySelectorAll('.sub-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          state.subDept = btn.dataset.sub;
-          state.selectedItemId = null;
-          state.itemNameInput = '';
-          document.getElementById('inp-item-name').value = '';
-          const def = getDefaultTemplateForDept('meat', state.subDept);
-          state.template = def.tpl;
-          state.form = createBlankFormState(def.tpl, def.mode);
-          renderDeptButtons();
-          renderQuickItems();
-          renderWeighingForm();
-        });
+      suggestBox.addEventListener('pointerdown', e => {
+        const btn = e.target.closest('.sup-suggest');
+        if (!btn) return;
+        e.preventDefault();
+        state.supplier = btn.dataset.supSuggest;
+        supInp.value = state.supplier;
+        renderSupplierSuggest();
+        document.getElementById('btn-clear-supplier').classList.remove('hidden');
       });
 
       const itemInp = document.getElementById('inp-item-name');
@@ -2958,7 +3701,7 @@
         itemInp.value = state.itemNameInput;
         state.template = it.template;
         state.form = createBlankFormState(it.template, it.defaultMode || 'kg');
-        renderDeptButtons();
+        renderTplButtons();
         renderQuickItems();
         renderWeighingForm();
       });
@@ -2970,7 +3713,7 @@
         btn.addEventListener('click', () => {
           state.template = btn.dataset.tpl;
           state.form = createBlankFormState(state.template, state.template === 'A' && state.dept === 'produce' ? 'crate' : 'kg');
-          renderDeptButtons();
+          renderTplButtons();
           renderWeighingForm();
         });
       });
@@ -3017,19 +3760,66 @@
       });
 
       document.getElementById('btn-export-bill-xlsx').addEventListener('click', () => exportExcelWorkbook(null));
-      document.getElementById('btn-clear-bill').addEventListener('click', () => {
-        state.records = [];
+      document.getElementById('btn-archive-bill').addEventListener('click', archiveCurrentBill);
+      document.getElementById('btn-purge-bill').addEventListener('click', purgeCurrentBill);
+
+      document.getElementById('sel-his-dept').addEventListener('change', renderHistoryView);
+      document.getElementById('inp-his-search').addEventListener('input', renderHistoryView);
+      document.getElementById('btn-export-single-dept').addEventListener('click', () => {
+        exportExcelWorkbook(document.getElementById('sel-export-dept').value, state.history);
+      });
+      document.getElementById('btn-export-all-depts').addEventListener('click', () => exportExcelWorkbook(null, state.history));
+      document.getElementById('btn-clear-history').addEventListener('click', () => {
+        if (state.history.length === 0) { showToast(t('hisEmpty'), 'warn'); return; }
+        if (!confirm(t('confirmClearHistory'))) return;
+        state.history = [];
         saveStorage();
-        updateBillBadge();
-        renderBillView();
+        renderHistoryView();
+        renderBackupStatus();
+        showToast(t('toastHistoryCleared'), 'success');
       });
 
-      document.getElementById('btn-export-single-dept').addEventListener('click', () => {
-        const dk = document.getElementById('sel-export-dept').value;
-        exportExcelWorkbook(dk);
+      document.getElementById('supplier-mgr-list').addEventListener('click', e => {
+        const rn = e.target.closest('.sup-rename-btn');
+        const dl = e.target.closest('.sup-del-btn');
+        if (rn) openSupplierRenameModal(rn.dataset.supRename);
+        if (dl) deleteSupplierByName(dl.dataset.supDelete);
       });
-      document.getElementById('btn-export-all-depts').addEventListener('click', () => exportExcelWorkbook(null));
-      document.getElementById('btn-load-demo').addEventListener('click', loadDemoRecordsForTesting);
+      document.getElementById('btn-close-sup-modal').addEventListener('click', () => {
+        document.getElementById('modal-edit-supplier').classList.add('hidden');
+      });
+      document.getElementById('btn-cancel-sup-edit').addEventListener('click', () => {
+        document.getElementById('modal-edit-supplier').classList.add('hidden');
+      });
+      document.getElementById('btn-save-sup-edit').addEventListener('click', saveSupplierRename);
+
+      document.getElementById('btn-export-backup').addEventListener('click', exportBackup);
+      document.getElementById('btn-import-backup').addEventListener('click', () => {
+        document.getElementById('file-import-backup').click();
+      });
+      document.getElementById('file-import-backup').addEventListener('change', e => {
+        const f = e.target.files && e.target.files[0];
+        handleBackupFile(f);
+        e.target.value = '';
+      });
+      document.getElementById('btn-close-restore').addEventListener('click', () => {
+        pendingRestore = null;
+        document.getElementById('modal-restore').classList.add('hidden');
+      });
+      document.getElementById('btn-cancel-restore').addEventListener('click', () => {
+        pendingRestore = null;
+        document.getElementById('modal-restore').classList.add('hidden');
+      });
+      document.getElementById('btn-restore-merge').addEventListener('click', () => applyRestore('merge'));
+      document.getElementById('btn-restore-replace').addEventListener('click', () => {
+        if (!confirm(t('confirmReplaceRestore'))) return;
+        applyRestore('replace');
+      });
+
+      document.getElementById('btn-install-pwa').addEventListener('click', handleInstallClick);
+      document.getElementById('btn-close-ios').addEventListener('click', () => {
+        document.getElementById('modal-ios-install').classList.add('hidden');
+      });
 
       document.getElementById('btn-close-modal').addEventListener('click', () => {
         document.getElementById('modal-edit-item').classList.add('hidden');
@@ -3043,18 +3833,24 @@
           it.template = document.getElementById('edit-item-tpl').value;
           saveStorage();
           renderQuickItems();
-          renderExportAndDictView();
+          renderSettingsView();
         }
         document.getElementById('modal-edit-item').classList.add('hidden');
       });
       document.getElementById('btn-delete-item').addEventListener('click', () => {
         const id = document.getElementById('edit-item-id').value;
+        const it = state.items.find(i => i.id === id);
+        if (it && !confirm(t('confirmDelItem', { name: getItemDisplayName(it) }))) return;
         state.items = state.items.filter(i => i.id !== id);
         saveStorage();
         renderQuickItems();
-        renderExportAndDictView();
+        renderSettingsView();
+        renderBackupStatus();
         document.getElementById('modal-edit-item').classList.add('hidden');
       });
+
+      setupKeyboardDockHandling();
+      registerServiceWorker();
     });
   </script>
 </body>
