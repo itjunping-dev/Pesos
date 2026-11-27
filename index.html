@@ -7,7 +7,7 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="收货称重" />
-  <meta name="theme-color" content="#14532d" />
+  <meta name="theme-color" content="#ffffff" />
   <title>收货称重 / Recepción</title>
   <link rel="icon" type="image/png" href="./icon-192.png" />
   <link rel="apple-touch-icon" href="./icon-192.png" />
@@ -23,8 +23,8 @@
   <style>
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background-color: #F4F6F8;
-      color: #0f172a;
+      background-color: #FFFFFF;
+      color: #111111;
       -webkit-tap-highlight-color: transparent;
     }
     .tabular-nums { font-variant-numeric: tabular-nums; }
@@ -51,12 +51,12 @@
     .dock-tab { transition: transform 0.15s ease, color 0.15s ease; }
     .dock-tab-active { transform: scale(1.06); }
 
-    /* Department capsule bar: frosted glass, sits right above the tab bar */
+    /* Department capsule bar: clean white frosted bar above the tab bar */
     #dept-capsule-bar {
-      background: rgba(244, 246, 248, 0.88);
+      background: rgba(255, 255, 255, 0.96);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-top: 1px solid rgba(15, 23, 42, 0.07);
+      border-top: 1px solid #E5E7EB;
     }
 
     /* Anti-overflow for short mobile labels (375px narrow screens) */
@@ -75,24 +75,24 @@
 <body class="min-h-screen flex justify-center">
 
   <!-- Main Mobile App Container -->
-  <div id="app" class="w-full max-w-[560px] min-h-screen bg-[#F4F6F8] shadow-xl flex flex-col relative">
+  <div id="app" class="w-full max-w-[560px] min-h-screen bg-white text-[#111111] shadow-lg border-x border-gray-200 flex flex-col relative">
 
-    <!-- Minimal Sticky Top Bar (page / department name + language toggle) -->
-    <header class="sticky top-0 z-30 text-white px-3.5 shadow-md" style="background:linear-gradient(135deg,#14532d 0%,#052e16 100%);padding-top:env(safe-area-inset-top)">
+    <!-- Minimal Sticky Top Bar (white background + black text) -->
+    <header class="sticky top-0 z-30 bg-white text-[#111111] px-3.5 border-b border-gray-200 shadow-xs" style="padding-top:env(safe-area-inset-top)">
       <div class="flex items-center justify-between gap-2 h-12">
         <div class="flex items-center gap-2 min-w-0">
           <!-- Custom App Logo SVG -->
           <div id="header-app-logo" class="w-8 h-8 rounded-lg overflow-hidden shrink-0"></div>
-          <h1 id="hdr-title" class="text-sm font-extrabold tracking-tight truncate">收货称重台</h1>
+          <h1 id="hdr-title" class="text-sm font-extrabold tracking-tight text-[#111111] truncate">收货称重台</h1>
         </div>
 
-        <!-- Bilingual Toggle Pill -->
+        <!-- Single-Language Toggle Pill -->
         <button id="btn-lang-toggle" type="button"
-          class="shrink-0 flex items-center gap-1.5 bg-white/10 hover:bg-white/20 active:scale-95 border border-white/15 rounded-full px-3 h-12 text-xs font-bold transition">
-          <span id="ico-lang-hdr" class="w-4 h-4 text-emerald-300"></span>
-          <span id="lang-pill-zh" class="text-emerald-300 font-extrabold">中文</span>
-          <span class="text-white/40">/</span>
-          <span id="lang-pill-es" class="text-white/70 font-semibold">ES</span>
+          class="shrink-0 flex items-center gap-1.5 bg-[#FAFAFA] hover:bg-gray-100 active:scale-95 border border-gray-300 rounded-full px-3 h-9 text-xs font-bold text-[#111111] transition">
+          <span id="ico-lang-hdr" class="w-4 h-4 text-[#111111]"></span>
+          <span id="lang-pill-zh" class="text-[#111111] font-extrabold">中文</span>
+          <span class="text-gray-400">/</span>
+          <span id="lang-pill-es" class="text-gray-400 font-semibold">ES</span>
         </button>
       </div>
     </header>
@@ -178,23 +178,23 @@
       <!-- 3. Dynamic Weighing Form Area -->
       <div id="weighing-form-container" class="space-y-3.5"></div>
 
-      <!-- 4. Live Result & Add-to-Bill Action Card -->
-      <section class="bg-slate-900 text-white rounded-[14px] p-4 shadow-lg space-y-3">
-        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800">
+      <!-- 4. Live Result & Add-to-Bill Action Card (White + Black Text) -->
+      <section class="bg-white text-[#111111] rounded-[14px] p-4 shadow-sm border-2 border-gray-300 space-y-3">
+        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-gray-200">
           <div>
-            <div id="res-lbl-net" class="text-[11px] font-semibold text-slate-400">最终实收净重</div>
-            <div id="res-val-net" class="text-2xl font-extrabold text-emerald-400 tabular-nums mt-0.5">0.0 kg</div>
-            <div id="res-sub-diff" class="text-[11px] text-slate-400 tabular-nums mt-0.5"></div>
+            <div id="res-lbl-net" class="text-[11px] font-bold text-gray-600">最终实收净重</div>
+            <div id="res-val-net" class="text-2xl font-extrabold text-[#15803D] tabular-nums mt-0.5">0.0 kg</div>
+            <div id="res-sub-diff" class="text-[11px] text-gray-600 tabular-nums mt-0.5"></div>
           </div>
           <div class="text-right">
-            <div id="res-lbl-amount" class="text-[11px] font-semibold text-slate-400">就地开单金额</div>
-            <div id="res-val-amount" class="text-2xl font-extrabold text-white tabular-nums mt-0.5">$0.00</div>
-            <div id="res-sub-cost" class="text-[11px] text-amber-300 font-semibold tabular-nums mt-0.5">真实进价: $0.00/kg</div>
+            <div id="res-lbl-amount" class="text-[11px] font-bold text-gray-600">就地开单金额</div>
+            <div id="res-val-amount" class="text-2xl font-extrabold text-[#111111] tabular-nums mt-0.5">$0.00</div>
+            <div id="res-sub-cost" class="text-[11px] text-amber-800 font-bold tabular-nums mt-0.5">真实进价: $0.00/kg</div>
           </div>
         </div>
 
         <button id="btn-save-entry" type="button"
-          class="w-full py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-[0.99] text-slate-950 font-extrabold text-base shadow-md transition flex items-center justify-center gap-2">
+          class="w-full py-3.5 rounded-xl bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white font-extrabold text-base shadow-sm transition flex items-center justify-center gap-2">
           <span id="ico-save-entry" class="w-5 h-5"></span>
           <span id="btn-save-entry-lbl">保存并加入本车核对</span>
         </button>
@@ -234,14 +234,14 @@
 
       <!-- Receipt Card for Vendor Comparison -->
       <section id="receipt-card" class="bg-white rounded-[14px] shadow-sm border border-slate-200 overflow-hidden">
-        <div class="bg-slate-900 text-white px-4 py-3.5">
+        <div class="bg-[#FAFAFA] text-[#111111] px-4 py-3.5 border-b border-gray-200">
           <div class="flex items-center justify-between">
-            <h2 id="rcpt-header" class="text-base font-extrabold tracking-tight">现场收货核对单</h2>
-            <span id="rcpt-date" class="text-xs text-slate-400 tabular-nums"></span>
+            <h2 id="rcpt-header" class="text-base font-extrabold tracking-tight text-[#111111]">现场收货核对单</h2>
+            <span id="rcpt-date" class="text-xs font-bold text-gray-600 tabular-nums"></span>
           </div>
-          <div class="mt-1.5 flex items-center justify-between text-xs text-slate-300">
-            <span><span id="rcpt-sup-lbl">供应商</span>: <strong id="rcpt-sup-val" class="text-white">—</strong></span>
-            <span id="rcpt-item-count" class="bg-slate-800 px-2 py-0.5 rounded-md tabular-nums">0 项</span>
+          <div class="mt-1.5 flex items-center justify-between text-xs text-gray-700">
+            <span><span id="rcpt-sup-lbl">供应商</span>: <strong id="rcpt-sup-val" class="text-[#111111]">—</strong></span>
+            <span id="rcpt-item-count" class="bg-white border border-gray-300 text-[#111111] font-bold px-2 py-0.5 rounded-md tabular-nums">0 项</span>
           </div>
         </div>
 
@@ -436,11 +436,11 @@
 
       <!-- 4. Install to Home Screen -->
       <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
-        <div class="p-3 rounded-xl bg-slate-900 text-white flex items-center gap-3.5">
-          <img src="./icon-192.png" alt="App icon" class="w-16 h-16 rounded-[14px] shadow-lg shrink-0 border border-white/15" />
+        <div class="p-3 rounded-xl bg-[#FAFAFA] text-[#111111] border border-gray-200 flex items-center gap-3.5">
+          <img src="./icon-192.png" alt="App icon" class="w-16 h-16 rounded-[14px] shadow-sm shrink-0 border border-gray-200" />
           <div class="space-y-1 min-w-0">
-            <div id="install-title" class="text-xs font-extrabold text-emerald-400">安装到手机桌面</div>
-            <p id="install-guide" class="text-[11px] text-slate-300 leading-relaxed">
+            <div id="install-title" class="text-xs font-extrabold text-[#111111]">安装到手机桌面</div>
+            <p id="install-guide" class="text-[11px] text-gray-700 leading-relaxed">
               iPhone Safari 点底部分享 →“添加到主屏幕”；安卓 Chrome 点右上菜单 →“安装应用”。
             </p>
           </div>
@@ -564,23 +564,23 @@
         <div id="dept-capsule-bar" class="hidden">
           <div id="dept-capsule-scroll" class="grid grid-cols-3 gap-2 px-3 py-2 w-full"></div>
         </div>
-        <nav class="grid grid-cols-4 bg-slate-900 border-t border-slate-800 shadow-[0_-4px_16px_rgba(15,23,42,0.25)]" style="padding-bottom:env(safe-area-inset-bottom)">
-          <button type="button" data-tab="weigh" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
+        <nav class="grid grid-cols-4 bg-white border-t border-gray-200 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]" style="padding-bottom:env(safe-area-inset-bottom)">
+          <button type="button" data-tab="weigh" class="dock-tab text-gray-500 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-weigh" class="w-5 h-5"></span>
             <span id="tab-lbl-weigh">称重</span>
           </button>
-          <button type="button" data-tab="bill" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="bill" class="dock-tab text-gray-500 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-bill" class="w-5 h-5"></span>
             <span class="flex items-center gap-1">
               <span id="tab-lbl-bill">核对单</span>
-              <span id="badge-bill-count" class="hidden bg-amber-400 text-slate-900 text-[10px] font-extrabold min-w-[17px] h-[17px] px-1 rounded-full tabular-nums flex items-center justify-center">0</span>
+              <span id="badge-bill-count" class="hidden bg-[#DC2626] text-white text-[10px] font-extrabold min-w-[17px] h-[17px] px-1 rounded-full tabular-nums flex items-center justify-center">0</span>
             </span>
           </button>
-          <button type="button" data-tab="history" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="history" class="dock-tab text-gray-500 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-history" class="w-5 h-5"></span>
             <span id="tab-lbl-history">历史</span>
           </button>
-          <button type="button" data-tab="settings" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="settings" class="dock-tab text-gray-500 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-settings" class="w-5 h-5"></span>
             <span id="tab-lbl-settings">词条设置</span>
           </button>
@@ -1469,9 +1469,14 @@
 
         const realUnitCost = finalNet > 0 ? round2(billedAmount / finalNet) : 0;
 
+        const grossScalesList = f.grossScales.map(num).filter(v => v > 0);
+        const tareRowsList = f.tareRows
+          .map(r => ({ count: num(r.count), unitWeight: num(r.unitWeight) }))
+          .filter(r => r.count > 0 && r.unitWeight > 0);
         return {
           tpl: 'A', priceMode: f.priceMode, quotedCrates, cratePrice, stdWeight,
           expectedNet, nominalUnitPrice, kgPrice: num(f.kgPrice), grossTotal, tareTotal,
+          grossScales: grossScalesList, tareRows: tareRowsList,
           tareCratesCount, initialNet, replenish, finalNet, weightDiff, initialShortage,
           remainingShortage, billedAmount, quotedAmount, realUnitCost
         };
@@ -1544,8 +1549,13 @@
       const billedAmount = round2(finalNet * kp);
       const pieces = num(f.charcPieces);
 
+      const charcScalesList = f.charcScales.map(num).filter(v => v > 0);
+      const charcTareRowsList = f.hasCharcTare
+        ? f.charcTareRows.map(r => ({ count: num(r.count), unitWeight: num(r.unitWeight) })).filter(r => r.count > 0 && r.unitWeight > 0)
+        : [];
       return {
         tpl: 'D', grossTotal, tareTotal, hasCharcTare: f.hasCharcTare,
+        charcScales: charcScalesList, charcTareRows: charcTareRowsList,
         finalNet, kgPrice: kp, pieces, billedAmount, realUnitCost: kp
       };
     }
@@ -1559,11 +1569,11 @@
       const pillZh = document.getElementById('lang-pill-zh');
       const pillEs = document.getElementById('lang-pill-es');
       if (state.lang === 'zh') {
-        pillZh.className = 'text-emerald-300 font-extrabold';
-        pillEs.className = 'text-white/60 font-semibold';
+        pillZh.className = 'text-[#111111] font-extrabold';
+        pillEs.className = 'text-gray-400 font-semibold';
       } else {
-        pillZh.className = 'text-white/60 font-semibold';
-        pillEs.className = 'text-emerald-300 font-extrabold';
+        pillZh.className = 'text-gray-400 font-semibold';
+        pillEs.className = 'text-[#111111] font-extrabold';
       }
 
       document.getElementById('tab-lbl-weigh').textContent = t('tabWeigh');
@@ -1822,9 +1832,27 @@
 
     /* ==== Department capsule bar (3 main entries) + meat sub-dept popover ==== */
     const DEPT_CAPSULES = [
-      { key: 'produce', labelKey: 'deptProduce', icon: 'dept_produce', activeCls: 'bg-emerald-600 text-white border-emerald-600 shadow-sm' },
-      { key: 'meat', labelKey: 'deptMeat', icon: 'dept_meat', activeCls: 'bg-rose-700 text-white border-rose-700 shadow-sm' },
-      { key: 'charcuteria', labelKey: 'deptCharcuteria', icon: 'dept_charcuteria', activeCls: 'bg-indigo-600 text-white border-indigo-600 shadow-sm' }
+      {
+        key: 'produce',
+        labelKey: 'deptProduce',
+        icon: 'dept_produce',
+        idleCls: 'bg-[#F0FDF4] text-[#111111] border-[#86EFAC] hover:bg-[#DCFCE7]',
+        activeCls: 'bg-[#DCFCE7] text-[#111111] border-2 border-[#16A34A] ring-2 ring-[#16A34A]/30 shadow-sm'
+      },
+      {
+        key: 'meat',
+        labelKey: 'deptMeat',
+        icon: 'dept_meat',
+        idleCls: 'bg-[#FEF2F2] text-[#111111] border-[#FCA5A5] hover:bg-[#FEE2E2]',
+        activeCls: 'bg-[#FEE2E2] text-[#111111] border-2 border-[#DC2626] ring-2 ring-[#DC2626]/30 shadow-sm'
+      },
+      {
+        key: 'charcuteria',
+        labelKey: 'deptCharcuteria',
+        icon: 'dept_charcuteria',
+        idleCls: 'bg-[#EFF6FF] text-[#111111] border-[#93C5FD] hover:bg-[#DBEAFE]',
+        activeCls: 'bg-[#DBEAFE] text-[#111111] border-2 border-[#2563EB] ring-2 ring-[#2563EB]/30 shadow-sm'
+      }
     ];
 
     function setDeptByKey(key) {
@@ -1854,11 +1882,17 @@
     function renderDeptCapsules() {
       const scroll = document.getElementById('dept-capsule-scroll');
       if (!scroll) return;
+      const meatActiveBySub = {
+        beef: 'bg-[#FEE2E2] text-[#111111] border-2 border-[#DC2626] ring-2 ring-[#DC2626]/30 shadow-sm',
+        pork: 'bg-[#FFEDD5] text-[#111111] border-2 border-[#EA580C] ring-2 ring-[#EA580C]/30 shadow-sm',
+        chicken: 'bg-[#FCE7F3] text-[#111111] border-2 border-[#EC4899] ring-2 ring-[#EC4899]/30 shadow-sm'
+      };
       scroll.innerHTML = DEPT_CAPSULES.map(c => {
         const active = c.key === 'meat' ? state.dept === 'meat' : c.key === state.dept;
+        const activeStyle = (c.key === 'meat' && active) ? (meatActiveBySub[state.subDept] || c.activeCls) : c.activeCls;
         return `
           <button type="button" data-deptkey="${c.key}"
-            class="dept-capsule w-full h-11 justify-center rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 px-2 ${active ? c.activeCls : 'bg-white/90 text-slate-700 border-slate-200 hover:bg-white'}">
+            class="dept-capsule w-full h-11 justify-center rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 px-2 ${active ? activeStyle : c.idleCls}">
             <span class="w-[18px] h-[18px] shrink-0">${SVG_ICONS[c.icon] || ''}</span>
             <span>${t(c.labelKey)}</span>
           </button>
@@ -1887,15 +1921,20 @@
     }
 
     function renderMeatPopover() {
-      const colors = {
-        beef: 'border-rose-600 bg-rose-50 text-rose-800',
-        pork: 'border-amber-600 bg-amber-50 text-amber-900',
-        chicken: 'border-amber-500 bg-amber-50 text-amber-900'
+      const activeColors = {
+        beef: 'border-2 border-[#DC2626] bg-[#FEE2E2] text-[#111111] ring-2 ring-[#DC2626]/30 shadow-sm',
+        pork: 'border-2 border-[#EA580C] bg-[#FFEDD5] text-[#111111] ring-2 ring-[#EA580C]/30 shadow-sm',
+        chicken: 'border-2 border-[#EC4899] bg-[#FCE7F3] text-[#111111] ring-2 ring-[#EC4899]/30 shadow-sm'
+      };
+      const idleColors = {
+        beef: 'border border-[#FCA5A5] bg-[#FEF2F2] text-[#111111] hover:bg-[#FEE2E2]',
+        pork: 'border border-[#FDBA74] bg-[#FFF7ED] text-[#111111] hover:bg-[#FFEDD5]',
+        chicken: 'border border-[#F9A8D4] bg-[#FDF2F8] text-[#111111] hover:bg-[#FCE7F3]'
       };
       document.querySelectorAll('.meat-pop-btn').forEach(btn => {
         const s = btn.dataset.sub;
         const active = state.dept === 'meat' && state.subDept === s;
-        btn.className = `meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border py-3 px-1.5 text-xs font-extrabold transition ${active ? colors[s] : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'}`;
+        btn.className = `meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl py-3 px-1.5 text-xs font-extrabold transition ${active ? activeColors[s] : idleColors[s]}`;
       });
     }
 
@@ -2329,8 +2368,8 @@
         const sign = calc.weightDiff >= 0 ? '+' : '';
         diffEl.textContent = `${state.lang === 'es' ? 'Dif. ' : ''}${sign}${fmtKg(calc.weightDiff)} kg vs ${fmtKg(calc.expectedNet)} kg`;
         diffEl.className = calc.weightDiff >= 0
-          ? 'text-[11px] text-emerald-400 font-bold tabular-nums mt-0.5'
-          : 'text-[11px] text-rose-400 font-bold tabular-nums mt-0.5';
+          ? 'text-[11px] text-[#15803D] font-bold tabular-nums mt-0.5'
+          : 'text-[11px] text-[#DC2626] font-bold tabular-nums mt-0.5';
       } else {
         diffEl.textContent = '';
       }
@@ -2756,11 +2795,11 @@
 
     /* Shared department badge styles (history list & dictionary rows) */
     const DEPT_BADGES = {
-      produce: { zh: '蔬菜水果', es: 'Verduras', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-      meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
-      meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
-      meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
-      charcuteria: { zh: '熟食部', es: 'Charcut.', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+      produce: { zh: '蔬菜水果', es: 'Verduras', bg: 'bg-[#DCFCE7] text-[#111111] border-[#16A34A]' },
+      meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-[#FEE2E2] text-[#111111] border-[#DC2626]' },
+      meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-[#FFEDD5] text-[#111111] border-[#EA580C]' },
+      meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-[#FCE7F3] text-[#111111] border-[#EC4899]' },
+      charcuteria: { zh: '熟食部', es: 'Charcut.', bg: 'bg-[#DBEAFE] text-[#111111] border-[#2563EB]' }
     };
 
     function renderSettingsView() {
@@ -2853,146 +2892,319 @@
       }
     };
 
-    /* Bilingual column definitions; `type` drives format + alignment + coloring. */
-    function buildDeptColumns(deptKey) {
-      const T = (zh, es, type) => ({ zh, es: es || zh, type: type || 'text' });
+    /* =========================================================================
+       VERTICAL STACKED EXCELJS REPORT BUILDER (竖列：纵向明细展开 + 小计汇总)
+       Each item/cow/batch expands vertically by weighing/tare/replenish steps,
+       followed immediately by a subtotal row with live Excel formulas.
+    ========================================================================= */
+
+    function getVerticalColumns(deptKey) {
+      const C = (zh, es, type, width) => ({ zh, es, type: type || 'text', width: width || 14 });
       if (deptKey === 'meat_beef') {
         return [
-          T('日期', 'Fecha'),
-          T('供应商', 'Proveedor'),
-          T('商品名称', 'Producto'),
-          T('头数', 'Cabezas', 'int'),
-          T('半边A(kg)', 'Mitad A (kg)', 'kg'),
-          T('半边B(kg)', 'Mitad B (kg)', 'kg'),
-          T('牛肉净重(kg)', 'Neto Res (kg)', 'kg'),
-          T('内脏套数', 'Juegos', 'int'),
-          T('内脏金额($)', 'Vísceras ($)', 'money'),
-          T('开单总额($)', 'Total ($)', 'money'),
-          T('牛肉均价($/kg)', 'Costo Res ($/kg)', 'cost'),
-          T('单头明细', 'Detalle')
+          C('日期', 'Fecha', 'center', 12),
+          C('供应商', 'Proveedor', 'text', 18),
+          C('商品 / 编号', 'Producto', 'bold', 16),
+          C('称重明细项', 'Detalle Pesada', 'center', 15),
+          C('单次重量(kg)', 'Peso Parcial', 'kg', 14),
+          C('整牛/小计重(kg)', 'Peso Total', 'kg_bold', 16),
+          C('单价($)', 'Precio Unit.', 'money', 12),
+          C('计价单位', 'Unidad', 'center', 10),
+          C('小计金额($)', 'Subtotal ($)', 'money_bold', 15)
         ];
       }
       if (deptKey === 'meat_pork') {
         return [
-          T('日期', 'Fecha'),
-          T('供应商', 'Proveedor'),
-          T('商品名称', 'Producto'),
-          T('头数', 'Cabezas', 'int'),
-          T('地秤累加(kg)', 'Bruto (kg)', 'kg'),
-          T('皮重(kg)', 'Tara (kg)', 'kg'),
-          T('实收净重(kg)', 'Neto (kg)', 'kg'),
-          T('单头均重(kg)', 'Prom./Cab. (kg)', 'kg'),
-          T('单价($/kg)', 'Precio ($/kg)', 'money'),
-          T('开单总额($)', 'Total ($)', 'money'),
-          T('多轮明细', 'Tandas')
+          C('日期', 'Fecha', 'center', 12),
+          C('供应商', 'Proveedor', 'text', 18),
+          C('批次 / 商品', 'Lote / Producto', 'bold', 16),
+          C('称重轮次 / 汇总', 'Ronda / Total', 'center', 16),
+          C('头数', 'Cabezas', 'int', 9),
+          C('单轮/扣皮重(kg)', 'Peso Parcial', 'signed_kg', 15),
+          C('批次实收净重(kg)', 'Peso Neto', 'kg_bold', 16),
+          C('单价($/kg)', 'Precio/kg', 'money', 12),
+          C('小计金额($)', 'Subtotal ($)', 'money_bold', 15)
         ];
       }
       if (deptKey === 'charcuteria') {
         return [
-          T('日期', 'Fecha'),
-          T('供应商', 'Proveedor'),
-          T('商品名称', 'Producto'),
-          T('件数', 'Piezas', 'int'),
-          T('毛重(kg)', 'Bruto (kg)', 'kg'),
-          T('扣筐(kg)', 'Tara (kg)', 'kg'),
-          T('实收净重(kg)', 'Neto (kg)', 'kg'),
-          T('单价($/kg)', 'Precio ($/kg)', 'money'),
-          T('开单总额($)', 'Total ($)', 'money'),
-          T('真实单价($/kg)', 'Costo ($/kg)', 'cost')
+          C('日期', 'Fecha', 'center', 12),
+          C('供应商', 'Proveedor', 'text', 18),
+          C('商品名称', 'Producto', 'bold', 17),
+          C('称重明细项', 'Detalle Pesada', 'center', 17),
+          C('件/条数', 'Piezas', 'int', 9),
+          C('单次/扣皮重(kg)', 'Peso Paso', 'signed_kg', 15),
+          C('实收净重(kg)', 'Peso Neto', 'kg_bold', 15),
+          C('单价($/kg)', 'Precio/kg', 'money', 12),
+          C('小计金额($)', 'Subtotal ($)', 'money_bold', 15)
         ];
       }
+      // produce & meat_chicken (Template A)
       return [
-        T('日期', 'Fecha'),
-        T('供应商', 'Proveedor'),
-        T('商品名称', 'Producto'),
-        T('计价方式', 'Modo', 'status'),
-        T('筐数', 'Cestas', 'int'),
-        T('标称总重(kg)', 'Meta (kg)', 'kg'),
-        T('毛重(kg)', 'Bruto (kg)', 'kg'),
-        T('扣筐皮重(kg)', 'Tara (kg)', 'kg'),
-        T('补斤(kg)', 'Reponer (kg)', 'kg'),
-        T('实收净重(kg)', 'Neto (kg)', 'kg'),
-        T('净重差额(kg)', 'Dif. (kg)', 'diff'),
-        T('比对状态', 'Estado', 'status'),
-        T('开单总额($)', 'Total ($)', 'money'),
-        T('真实单价($/kg)', 'Costo ($/kg)', 'cost')
+        C('日期', 'Fecha', 'center', 12),
+        C('供应商', 'Proveedor', 'text', 17),
+        C('商品名称', 'Producto', 'bold', 16),
+        C('称重与去皮步骤', 'Paso Pesada', 'center', 18),
+        C('筐数', 'Cestas', 'int', 9),
+        C('单步重量(kg)', 'Peso Paso', 'signed_kg', 14),
+        C('实收净重(kg)', 'Peso Neto', 'kg_bold', 14),
+        C('净重差额(kg)', 'Dif. Peso', 'diff', 13),
+        C('真实单价($/kg)', 'Costo Real', 'cost', 14),
+        C('开单金额($)', 'Total ($)', 'money_bold', 15)
       ];
     }
 
-    /* One data row per record (formulas keep net weight / diff live in Excel). */
-    function buildDeptRowValues(deptKey, rec, rowIdx, lang) {
-      const c = rec.calc;
-      const itemLabel = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, lang === 'es' ? 'es' : 'zh');
-      if (deptKey === 'meat_beef') {
-        const sumA = round2((c.cowDetails || []).reduce((s, x) => s + x.halfA, 0));
-        const sumB = round2((c.cowDetails || []).reduce((s, x) => s + x.halfB, 0));
-        const detailStr = (c.cowDetails || []).map((x, k) => `#${k + 1}: ${x.halfA}+${x.halfB}kg @$${x.unitPrice}`).join('; ');
-        return [rec.date, rec.supplier, itemLabel, c.validHeads || 0, sumA, sumB,
-          { formula: `E${rowIdx}+F${rowIdx}`, result: c.beefNet },
-          c.offalSets || 0, c.offalAmount || 0, c.billedAmount, c.realUnitCost, detailStr];
-      }
-      if (deptKey === 'meat_pork') {
-        const roundsStr = (c.rounds || []).map((v, k) => lang === 'es' ? `T${k + 1}:${v}kg` : `第${k + 1}轮:${v}kg`).join(' + ');
-        return [rec.date, rec.supplier, itemLabel, c.heads || 0, c.grossTotal, c.tare || 0,
-          { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
-          c.avgHeadWeight || 0, c.kgPrice, c.billedAmount, roundsStr];
-      }
-      if (deptKey === 'charcuteria') {
-        return [rec.date, rec.supplier, itemLabel, c.pieces || 0, c.grossTotal, c.tareTotal || 0,
-          { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
-          c.kgPrice, c.billedAmount, c.realUnitCost];
-      }
+    function buildVerticalRows(deptKey, deptRecords, startRow, lang) {
       const isEs = lang === 'es';
-      const modeLabel = c.priceMode === 'crate' ? (isEs ? 'x Cesta' : '按筐') : (isEs ? 'x Kg' : '按公斤');
-      const statusLabel = c.weightDiff < 0
-        ? (isEs ? 'Faltante' : '缺重')
-        : (c.weightDiff > 0 ? (isEs ? 'Sobrepeso' : '超重不加价') : (isEs ? 'Completo' : '足秤'));
-      return [rec.date, rec.supplier, itemLabel, modeLabel,
-        c.priceMode === 'crate' ? c.quotedCrates : 0,
-        c.priceMode === 'crate' ? c.expectedNet : c.finalNet,
-        c.grossTotal, c.tareTotal, c.replenish,
-        { formula: `G${rowIdx}-H${rowIdx}+I${rowIdx}`, result: c.finalNet },
-        { formula: `J${rowIdx}-F${rowIdx}`, result: c.weightDiff },
-        statusLabel, c.billedAmount, c.realUnitCost];
+      const rows = []; // { type: 'group_start'|'detail'|'subtotal', vals: [...], diffVal?: number, amtVal?: number }
+      let curRow = startRow;
+
+      deptRecords.forEach(rec => {
+        const c = rec.calc || {};
+        const itemLabel = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, isEs ? 'es' : 'zh');
+        const sup = rec.supplier || '—';
+
+        if (deptKey === 'meat_beef') {
+          const cows = (c.cowDetails || []).filter(x => x.halfA > 0 || x.halfB > 0);
+          cows.forEach((cow, k) => {
+            const cowName = cows.length > 1 ? `${itemLabel} #${k + 1}` : itemLabel;
+            const rA = curRow;
+            rows.push({
+              type: 'group_start',
+              vals: [rec.date, sup, cowName, isEs ? 'Mitad A' : '半边 A', cow.halfA, null, null, null, null]
+            });
+            curRow++;
+            const rB = curRow;
+            rows.push({
+              type: 'detail',
+              vals: ['', '', cowName, isEs ? 'Mitad B' : '半边 B', cow.halfB, null, null, null, null]
+            });
+            curRow++;
+            const rSub = curRow;
+            rows.push({
+              type: 'subtotal',
+              amtVal: cow.headAmt,
+              vals: [
+                '', sup, cowName, isEs ? 'Total Res' : '整牛合计', null,
+                { formula: `E${rA}+E${rB}`, result: cow.headW },
+                cow.unitPrice, '$/kg',
+                { formula: `F${rSub}*G${rSub}`, result: cow.headAmt }
+              ]
+            });
+            curRow++;
+          });
+          if (c.hasOffal && c.offalSets > 0) {
+            const rOff = curRow;
+            const offName = isEs ? `Vísceras (${c.offalSets} jgo)` : `牛内脏 (${c.offalSets}套)`;
+            rows.push({
+              type: 'subtotal',
+              amtVal: c.offalAmount,
+              vals: [
+                rec.date, sup, offName, isEs ? 'Vísceras(Jgo)' : '内脏(按套)', null,
+                0, c.offalPrice, isEs ? '$/jgo' : '$/套',
+                { formula: `${c.offalSets}*G${rOff}`, result: c.offalAmount }
+              ]
+            });
+            curRow++;
+          }
+          return;
+        }
+
+        if (deptKey === 'meat_pork') {
+          const gStart = curRow;
+          const rounds = (c.rounds && c.rounds.length) ? c.rounds.filter(v => v > 0) : (c.grossTotal > 0 ? [c.grossTotal] : []);
+          rounds.forEach((w, idx) => {
+            rows.push({
+              type: idx === 0 ? 'group_start' : 'detail',
+              vals: [
+                idx === 0 ? rec.date : '',
+                idx === 0 ? sup : '',
+                itemLabel,
+                isEs ? `Tanda ${idx + 1}` : `第 ${idx + 1} 轮`,
+                null, w, null, null, null
+              ]
+            });
+            curRow++;
+          });
+          if (c.tare > 0) {
+            rows.push({
+              type: rounds.length === 0 ? 'group_start' : 'detail',
+              vals: ['', '', itemLabel, isEs ? 'Tara Carro' : '扣推车皮重', null, -round2(c.tare), null, null, null]
+            });
+            curRow++;
+          }
+          const gEnd = curRow - 1;
+          const rSub = curRow;
+          rows.push({
+            type: 'subtotal',
+            amtVal: c.billedAmount,
+            vals: [
+              '', sup, itemLabel, isEs ? 'Total Lote' : '批次净重合计',
+              c.heads || null, null,
+              gEnd >= gStart ? { formula: `SUM(F${gStart}:F${gEnd})`, result: c.finalNet } : c.finalNet,
+              c.kgPrice || 0,
+              { formula: `G${rSub}*H${rSub}`, result: c.billedAmount }
+            ]
+          });
+          curRow++;
+          return;
+        }
+
+        if (deptKey === 'charcuteria') {
+          const gStart = curRow;
+          const scales = (c.charcScales && c.charcScales.length) ? c.charcScales : (c.grossTotal > 0 ? [c.grossTotal] : []);
+          scales.forEach((w, idx) => {
+            const stepLbl = c.tareTotal > 0
+              ? (isEs ? `Bruto #${idx + 1}` : `第${idx + 1}秤毛重`)
+              : (scales.length > 1 ? (isEs ? `Pesada ${idx + 1}` : `第${idx + 1}条/秤`) : (isEs ? 'Neto Directo' : '直称净重'));
+            rows.push({
+              type: idx === 0 ? 'group_start' : 'detail',
+              vals: [idx === 0 ? rec.date : '', idx === 0 ? sup : '', itemLabel, stepLbl, null, w, null, null, null]
+            });
+            curRow++;
+          });
+          if (c.charcTareRows && c.charcTareRows.length) {
+            c.charcTareRows.forEach(tr => {
+              const tw = round2(tr.count * tr.unitWeight);
+              rows.push({
+                type: 'detail',
+                vals: ['', '', itemLabel, isEs ? `Tara (${tr.count}×${tr.unitWeight}kg)` : `特殊扣筐 (${tr.count}×${tr.unitWeight}kg)`, null, -tw, null, null, null]
+              });
+              curRow++;
+            });
+          } else if (c.tareTotal > 0) {
+            rows.push({
+              type: 'detail',
+              vals: ['', '', itemLabel, isEs ? 'Tara Cesta' : '特殊扣筐去皮', null, -round2(c.tareTotal), null, null, null]
+            });
+            curRow++;
+          }
+          const gEnd = curRow - 1;
+          const rSub = curRow;
+          rows.push({
+            type: 'subtotal',
+            amtVal: c.billedAmount,
+            vals: [
+              '', sup, itemLabel, isEs ? 'Subtotal Neto' : '品项净重汇总',
+              c.pieces || null, null,
+              gEnd >= gStart ? { formula: `SUM(F${gStart}:F${gEnd})`, result: c.finalNet } : c.finalNet,
+              c.kgPrice || 0,
+              { formula: `G${rSub}*H${rSub}`, result: c.billedAmount }
+            ]
+          });
+          curRow++;
+          return;
+        }
+
+        // produce & meat_chicken (Template A)
+        const gStart = curRow;
+        const scales = (c.grossScales && c.grossScales.length) ? c.grossScales : (c.grossTotal > 0 ? [c.grossTotal] : []);
+        scales.forEach((w, idx) => {
+          rows.push({
+            type: idx === 0 ? 'group_start' : 'detail',
+            vals: [
+              idx === 0 ? rec.date : '',
+              idx === 0 ? sup : '',
+              itemLabel,
+              isEs ? `Pesada ${idx + 1} (Bruto)` : `第${idx + 1}秤毛重`,
+              null, w, null, null, null, null
+            ]
+          });
+          curRow++;
+        });
+        if (c.tareRows && c.tareRows.length) {
+          c.tareRows.forEach(tr => {
+            const tw = round2(tr.count * tr.unitWeight);
+            rows.push({
+              type: 'detail',
+              vals: [
+                '', '', itemLabel,
+                isEs ? `Tara (${tr.count}×${tr.unitWeight}kg)` : `扣筐 (${tr.count}×${tr.unitWeight}kg)`,
+                null, -tw, null, null, null, null
+              ]
+            });
+            curRow++;
+          });
+        } else if (c.tareTotal > 0) {
+          rows.push({
+            type: 'detail',
+            vals: ['', '', itemLabel, isEs ? 'Tara Cestas' : '扣筐去皮', null, -round2(c.tareTotal), null, null, null, null]
+          });
+          curRow++;
+        }
+        if (c.replenish > 0) {
+          rows.push({
+            type: 'detail',
+            vals: ['', '', itemLabel, isEs ? 'Reposición' : '现场缺重补斤', null, round2(c.replenish), null, null, null, null]
+          });
+          curRow++;
+        }
+        const gEnd = curRow - 1;
+        const rSub = curRow;
+        const cratesVal = c.priceMode === 'crate' ? (c.quotedCrates || 0) : (c.tareCratesCount || null);
+        const diffFormula = (c.priceMode === 'crate' && c.expectedNet > 0)
+          ? { formula: `G${rSub}-${c.expectedNet}`, result: c.weightDiff }
+          : 0;
+        const amtCell = (c.priceMode === 'kg' && c.kgPrice > 0)
+          ? { formula: `G${rSub}*${c.kgPrice}`, result: c.billedAmount }
+          : c.billedAmount;
+
+        rows.push({
+          type: 'subtotal',
+          diffVal: (c.priceMode === 'crate' && c.expectedNet > 0) ? c.weightDiff : 0,
+          amtVal: c.billedAmount,
+          vals: [
+            '', sup, itemLabel, isEs ? 'Resumen Neto' : '实收净重汇总',
+            cratesVal, null,
+            gEnd >= gStart ? { formula: `SUM(F${gStart}:F${gEnd})`, result: c.finalNet } : c.finalNet,
+            diffFormula,
+            { formula: `IF(G${rSub}>0,J${rSub}/G${rSub},0)`, result: c.realUnitCost },
+            amtCell
+          ]
+        });
+        curRow++;
+      });
+
+      return rows;
     }
 
-    /* KPI dashboard cards, computed with live Excel formulas over the data range. */
-    function buildDeptKpis(deptKey, startRow, endRow) {
-      const S = col => `SUM(${col}${startRow}:${col}${endRow})`;
-      if (deptKey === 'produce') {
-        return [
-          { zh: '总筐数', es: 'Cestas', formula: S('E'), fmt: '0' },
-          { zh: '标称总重(kg)', es: 'Meta (kg)', formula: S('F'), fmt: '0.00' },
-          { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('J'), fmt: '0.00' },
-          { zh: '净重差额(kg)', es: 'Dif. (kg)', formula: S('K'), fmt: '+0.00;-0.00;0.00' },
-          { zh: '开单总金额($)', es: 'Total ($)', formula: S('M'), fmt: '$#,##0.00' },
-          { zh: '综合真实均价($/kg)', es: 'Costo real ($/kg)', formula: `IF(SUM(J${startRow}:J${endRow})>0,SUM(M${startRow}:M${endRow})/SUM(J${startRow}:J${endRow}),0)`, fmt: '$#,##0.00' }
-        ];
-      }
+    function buildVerticalKpis(deptKey, startRow, endRow, lang) {
+      const isEs = lang === 'es';
       if (deptKey === 'meat_beef') {
+        const tagCow = isEs ? 'Total Res' : '整牛合计';
+        const tagOff = isEs ? 'Vísceras(Jgo)' : '内脏(按套)';
         return [
-          { zh: '总头数', es: 'Cabezas', formula: S('D'), fmt: '0' },
-          { zh: '牛肉净重(kg)', es: 'Neto Res (kg)', formula: S('G'), fmt: '0.00' },
-          { zh: '内脏金额($)', es: 'Vísceras ($)', formula: S('I'), fmt: '$#,##0.00' },
-          { zh: '开单总金额($)', es: 'Total ($)', formula: S('J'), fmt: '$#,##0.00' },
-          { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(J${startRow}:J${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+          { lbl: isEs ? 'Cabezas' : '总头数', formula: `COUNTIF(D${startRow}:D${endRow},"${tagCow}")`, fmt: '0' },
+          { lbl: isEs ? 'Vísceras' : '内脏行', formula: `COUNTIF(D${startRow}:D${endRow},"${tagOff}")`, fmt: '0' },
+          { lbl: isEs ? 'Neto Res (kg)' : '牛肉净重(kg)', formula: `SUMIF(D${startRow}:D${endRow},"${tagCow}",F${startRow}:F${endRow})`, fmt: '0.00' },
+          { lbl: isEs ? 'Total ($)' : '开单总额($)', formula: `SUMIF(D${startRow}:D${endRow},"${tagCow}",I${startRow}:I${endRow})+SUMIF(D${startRow}:D${endRow},"${tagOff}",I${startRow}:I${endRow})`, fmt: '$#,##0.00' }
         ];
       }
       if (deptKey === 'meat_pork') {
+        const tag = isEs ? 'Total Lote' : '批次净重合计';
         return [
-          { zh: '总头数', es: 'Cabezas', formula: S('D'), fmt: '0' },
-          { zh: '地秤总毛重(kg)', es: 'Bruto (kg)', formula: S('E'), fmt: '0.00' },
-          { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('G'), fmt: '0.00' },
-          { zh: '开单总金额($)', es: 'Total ($)', formula: S('J'), fmt: '$#,##0.00' },
-          { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(J${startRow}:J${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+          { lbl: isEs ? 'Cabezas' : '总头数', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, fmt: '0' },
+          { lbl: isEs ? 'Neto (kg)' : '实收净重(kg)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, fmt: '0.00' },
+          { lbl: isEs ? 'Total ($)' : '开单总额($)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})`, fmt: '$#,##0.00' },
+          { lbl: isEs ? 'Costo ($/kg)' : '综合均价($/kg)', formula: `IF(SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})>0,SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})/SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
         ];
       }
+      if (deptKey === 'charcuteria') {
+        const tag = isEs ? 'Subtotal Neto' : '品项净重汇总';
+        return [
+          { lbl: isEs ? 'Piezas' : '总件/条数', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, fmt: '0' },
+          { lbl: isEs ? 'Neto (kg)' : '实收净重(kg)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, fmt: '0.00' },
+          { lbl: isEs ? 'Total ($)' : '开单总额($)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})`, fmt: '$#,##0.00' },
+          { lbl: isEs ? 'Costo ($/kg)' : '综合均价($/kg)', formula: `IF(SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})>0,SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})/SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+        ];
+      }
+      const tag = isEs ? 'Resumen Neto' : '实收净重汇总';
       return [
-        { zh: '记录笔数', es: 'Registros', formula: `COUNTA(A${startRow}:A${endRow})`, fmt: '0' },
-        { zh: '总件数', es: 'Piezas', formula: S('D'), fmt: '0' },
-        { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('G'), fmt: '0.00' },
-        { zh: '开单总金额($)', es: 'Total ($)', formula: S('I'), fmt: '$#,##0.00' },
-        { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(I${startRow}:I${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+        { lbl: isEs ? 'Cestas' : '总筐数', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, fmt: '0' },
+        { lbl: isEs ? 'Neto (kg)' : '实收净重(kg)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, fmt: '0.00' },
+        { lbl: isEs ? 'Dif. (kg)' : '净重差额(kg)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",H${startRow}:H${endRow})`, fmt: '+0.00;-0.00;0.00' },
+        { lbl: isEs ? 'Total ($)' : '开单总额($)', formula: `SUMIF(D${startRow}:D${endRow},"${tag}",J${startRow}:J${endRow})`, fmt: '$#,##0.00' },
+        { lbl: isEs ? 'Costo ($/kg)' : '综合均价($/kg)', formula: `IF(SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})>0,SUMIF(D${startRow}:D${endRow},"${tag}",J${startRow}:J${endRow})/SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
       ];
     }
 
@@ -3000,62 +3212,63 @@
       const lang = state.lang === 'es' ? 'es' : 'zh';
       const isEs = lang === 'es';
       const theme = DEPT_EXCEL_THEMES[deptKey];
-      const columns = buildDeptColumns(deptKey);
+      const columns = getVerticalColumns(deptKey);
       const colCount = columns.length;
       const FONT = 'Calibri';
 
       const ws = workbook.addWorksheet(theme.sheetName[lang], {
-        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+        pageSetup: { orientation: 'portrait', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
         views: [{ state: 'frozen', xSplit: 3, ySplit: 7 }]
       });
 
-      const kpiBg = blendHex(theme.primary, 0.90);
+      const kpiBg = blendHex(theme.primary, 0.92);
       const kpiBorder = blendHex(theme.primary, 0.62);
+      const groupBg = blendHex(theme.primary, 0.86);
+      const subBorderColor = blendHex(theme.primary, 0.35);
       const thinGray = 'E2E8F0';
       const startRow = 8;
-      const endRow = startRow + deptRecords.length - 1;
-      const rowValuesList = deptRecords.map((rec, i) => buildDeptRowValues(deptKey, rec, startRow + i, lang));
 
-      /* ---- auto column widths (header + content + 5 chars padding) ---- */
+      const vRows = buildVerticalRows(deptKey, deptRecords, startRow, lang);
+      const endRow = Math.max(startRow, startRow + vRows.length - 1);
+
+      /* Auto column widths */
       const dispLen = s => String(s == null ? '' : s).split('').reduce((n, ch) => n + (/[\u2E80-\u9FFF\uF900-\uFDFF\uFF00-\uFFEF]/.test(ch) ? 2 : 1), 0);
-      const widths = columns.map((col, idx) => {
-        let len = dispLen(col[lang]) + 2;
-        rowValuesList.forEach(vals => {
-          const v = vals[idx];
+      ws.columns = columns.map((col, idx) => {
+        let len = Math.max(col.width, dispLen(col[lang]) + 3);
+        vRows.forEach(rObj => {
+          const v = rObj.vals[idx];
           const raw = (v && typeof v === 'object') ? (v.result != null ? String(v.result) : '') : v;
-          len = Math.max(len, dispLen(raw));
+          len = Math.max(len, dispLen(raw) + 3);
         });
-        return Math.max(9, Math.min(42, Math.ceil(len) + 5));
+        return { width: Math.max(9, Math.min(30, Math.ceil(len))) };
       });
-      ws.columns = widths.map(w => ({ width: w }));
 
-      /* ---- Row 1: title banner ---- */
+      /* Row 1: Title Banner */
       ws.mergeCells(1, 1, 1, colCount);
       const r1 = ws.getCell(1, 1);
-      r1.value = theme.title[lang];
-      r1.font = { name: FONT, size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
+      r1.value = theme.title[lang] + (isEs ? ' (Formato Vertical)' : '（竖列明细）');
+      r1.font = { name: FONT, size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
       r1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.primary } };
       r1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-      ws.getRow(1).height = 32;
+      ws.getRow(1).height = 30;
 
-      /* ---- Row 2: subtitle (export date/time + currency) ---- */
+      /* Row 2: Subtitle */
       ws.mergeCells(2, 1, 2, colCount);
       const r2 = ws.getCell(2, 1);
       const now = new Date();
       const p2 = n => String(n).padStart(2, '0');
       const stamp = `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}`;
       r2.value = isEs
-        ? `Exportado: ${stamp}   |   Moneda: USD ($)   |   ${deptRecords.length} registros`
-        : `导出时间: ${stamp}   |   币种: USD ($)   |   共 ${deptRecords.length} 笔`;
-      r2.font = { name: FONT, size: 10, italic: true, color: { argb: 'FF64748B' } };
+        ? `Exportado: ${stamp}  |  Moneda: USD ($)  |  ${deptRecords.length} registros (Desglose vertical por pesada)`
+        : `导出时间: ${stamp}  |  币种: USD ($)  |  共 ${deptRecords.length} 笔（按称重步骤竖排展开 + 小计汇总）`;
+      r2.font = { name: FONT, size: 9.5, italic: true, color: { argb: 'FF475569' } };
       r2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-      ws.getRow(2).height = 22;
+      ws.getRow(2).height = 20;
 
-      /* Row 3: spacer */
       ws.getRow(3).height = 6;
 
-      /* ---- Rows 4-5: KPI dashboard cards ---- */
-      const kpis = buildDeptKpis(deptKey, startRow, endRow);
+      /* Rows 4-5: KPI Summary Cards */
+      const kpis = buildVerticalKpis(deptKey, startRow, endRow, lang);
       const base = Math.floor(colCount / kpis.length);
       const extra = colCount % kpis.length;
       let cursor = 1;
@@ -3072,31 +3285,30 @@
             cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + kpiBg } };
             cell.border = {
               top: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
-              bottom: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
+              bottom: { style: rr === 5 ? 'medium' : 'thin', color: { argb: 'FF' + (rr === 5 ? theme.primary : kpiBorder) } },
               left: { style: 'thin', color: { argb: 'FF' + (cc === c1 ? kpiBorder : kpiBg) } },
               right: { style: 'thin', color: { argb: 'FF' + (cc === c2 ? kpiBorder : kpiBg) } }
             };
           });
         }
         const lbl = ws.getCell(4, c1);
-        lbl.value = kpi[lang];
+        lbl.value = kpi.lbl;
         lbl.font = { name: FONT, size: 9, bold: true, color: { argb: 'FF475569' } };
         lbl.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         const val = ws.getCell(5, c1);
         val.value = { formula: kpi.formula };
         val.numFmt = kpi.fmt;
-        val.font = { name: FONT, size: 14, bold: true, color: { argb: 'FF' + theme.primary } };
+        val.font = { name: FONT, size: 13, bold: true, color: { argb: 'FF' + theme.primary } };
         val.alignment = { vertical: 'middle', horizontal: 'center' };
       });
       ws.getRow(4).height = 18;
-      ws.getRow(5).height = 26;
+      ws.getRow(5).height = 25;
 
-      /* Row 6: spacer */
-      ws.getRow(6).height = 8;
+      ws.getRow(6).height = 6;
 
-      /* ---- Row 7: table header (frozen via views) ---- */
+      /* Row 7: Table Header */
       const headerRow = ws.getRow(7);
-      headerRow.height = 32;
+      headerRow.height = 30;
       columns.forEach((col, idx) => {
         const cell = headerRow.getCell(idx + 1);
         cell.value = col[lang];
@@ -3111,112 +3323,112 @@
         };
       });
 
-      /* ---- data detail rows ---- */
-      const maxAmount = Math.max(...deptRecords.map(r => r.calc.billedAmount || 0), 1);
-      const maxCost = Math.max(...deptRecords.map(r => r.calc.realUnitCost || 0), 1);
-      rowValuesList.forEach((vals, i) => {
-        const row = ws.getRow(startRow + i);
-        row.height = 24;
-        const rec = deptRecords[i];
-        const c = rec.calc;
-        const zebraBg = i % 2 === 1 ? theme.zebra : 'FFFFFFFF';
+      /* Rows 8+: Vertical Stacked Detail & Subtotal Rows */
+      vRows.forEach((rObj, idx) => {
+        const rNum = startRow + idx;
+        const row = ws.getRow(rNum);
+        const isSub = rObj.type === 'subtotal';
+        const isStart = rObj.type === 'group_start';
+        row.height = isSub ? 24 : 22;
 
-        vals.forEach((val, colIdx) => {
+        const rowBg = isSub ? groupBg : (idx % 2 === 1 ? theme.zebra : 'FFFFFF');
+        rObj.vals.forEach((val, colIdx) => {
           const cell = row.getCell(colIdx + 1);
-          cell.value = val;
-          const colType = columns[colIdx].type || 'text';
-          cell.font = { name: FONT, size: 10, color: { argb: 'FF0F172A' } };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + zebraBg } };
-          cell.alignment = { vertical: 'middle', horizontal: 'left' };
+          const colType = columns[colIdx].type;
+          if (val !== null && val !== undefined && val !== '') {
+            cell.value = val;
+          }
+          cell.font = {
+            name: FONT,
+            size: 10,
+            bold: isSub || colType === 'bold' || colType === 'kg_bold' || colType === 'money_bold',
+            color: { argb: 'FF' + (isSub ? theme.primary : '111111') }
+          };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + rowBg } };
           cell.border = {
-            top: { style: 'thin', color: { argb: 'FF' + thinGray } },
-            bottom: { style: 'thin', color: { argb: 'FF' + thinGray } },
+            top: { style: isStart ? 'medium' : 'thin', color: { argb: 'FF' + (isStart ? subBorderColor : thinGray) } },
+            bottom: { style: isSub ? 'medium' : 'thin', color: { argb: 'FF' + (isSub ? subBorderColor : thinGray) } },
             left: { style: 'thin', color: { argb: 'FF' + thinGray } },
             right: { style: 'thin', color: { argb: 'FF' + thinGray } }
           };
 
-          if (colType === 'int') { cell.numFmt = '0'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
-          if (colType === 'kg') { cell.numFmt = '0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
-          if (colType === 'diff') { cell.numFmt = '+0.00;-0.00;0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
-          if (colType === 'money' || colType === 'cost') { cell.numFmt = '$#,##0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
-          if (colType === 'status') { cell.alignment = { vertical: 'middle', horizontal: 'center' }; }
-
-          /* semantic coloring: diff column + status column */
-          if (colType === 'diff' || (colType === 'status' && colIdx === 11)) {
-            const dc = diffColor(c.weightDiff || 0);
-            cell.font = { name: FONT, size: 10, bold: dc.bold, color: { argb: 'FF' + dc.font } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + dc.fill } };
-          }
-
-          /* amount / real-cost columns: bold + soft theme-tinted gradient by value */
-          if (colType === 'money' || colType === 'cost') {
-            const ratio = colType === 'money' ? (c.billedAmount || 0) / maxAmount : (c.realUnitCost || 0) / maxCost;
-            const tint = blendHex(theme.primary, 0.94 - Math.min(0.42, ratio * 0.42));
-            cell.font = { name: FONT, size: 10, bold: true, color: { argb: 'FF0F172A' } };
-            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + tint } };
+          if (colType === 'center') {
+            cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+          } else if (colType === 'int') {
+            cell.numFmt = '0';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else if (colType === 'kg' || colType === 'kg_bold') {
+            cell.numFmt = '0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else if (colType === 'signed_kg') {
+            cell.numFmt = '+0.00;-0.00;0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else if (colType === 'diff') {
+            cell.numFmt = '+0.00;-0.00;0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+            if (isSub && rObj.diffVal !== undefined) {
+              const dc = diffColor(rObj.diffVal);
+              cell.font = { name: FONT, size: 10, bold: dc.bold, color: { argb: 'FF' + dc.font } };
+              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + dc.fill } };
+            }
+          } else if (colType === 'money' || colType === 'money_bold' || colType === 'cost') {
+            cell.numFmt = '$#,##0.00';
+            cell.alignment = { vertical: 'middle', horizontal: 'right' };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'left', wrapText: true };
           }
         });
       });
 
-      /* ---- TOTAL row: native SUM formulas + weighted average ---- */
+      /* Grand Total Row */
       const totRowIdx = endRow + 1;
       const totRow = ws.getRow(totRowIdx);
-      totRow.height = 28;
+      totRow.height = 27;
       for (let colIdx = 0; colIdx < colCount; colIdx++) {
         const cell = totRow.getCell(colIdx + 1);
-        cell.font = { name: FONT, size: 10.5, bold: true, color: { argb: 'FF0F172A' } };
+        cell.font = { name: FONT, size: 10.5, bold: true, color: { argb: 'FF' + theme.primary } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.totalBg } };
         cell.border = {
-          top: { style: 'thin', color: { argb: 'FF' + theme.primary } },
+          top: { style: 'medium', color: { argb: 'FF' + theme.primary } },
           bottom: { style: 'double', color: { argb: 'FF' + theme.primary } },
           left: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
           right: { style: 'thin', color: { argb: 'FF' + kpiBorder } }
         };
       }
-      const colLetter = i => ws.getColumn(i).letter;
-      const S = i => `SUM(${colLetter(i)}${startRow}:${colLetter(i)}${endRow})`;
-      const putTotal = (colNum, formula, fmt) => {
-        const cell = totRow.getCell(colNum);
-        cell.value = { formula };
-        cell.numFmt = fmt;
-        cell.alignment = { vertical: 'middle', horizontal: 'right' };
-      };
-      totRow.getCell(1).value = isEs ? 'TOTAL' : '合计';
-      totRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
+      totRow.getCell(1).value = isEs ? 'TOTAL' : '总计';
+      totRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'center' };
 
-      if (deptKey === 'produce') {
-        putTotal(5, S(5), '0');
-        putTotal(6, S(6), '0.00');
-        putTotal(10, S(10), '0.00');
-        putTotal(11, S(11), '+0.00;-0.00;0.00');
-        putTotal(13, S(13), '$#,##0.00');
-        putTotal(14, `IF(J${totRowIdx}>0,M${totRowIdx}/J${totRowIdx},0)`, '$#,##0.00');
-      } else if (deptKey === 'meat_beef') {
-        putTotal(4, S(4), '0');
-        putTotal(5, S(5), '0.00');
-        putTotal(6, S(6), '0.00');
-        putTotal(7, S(7), '0.00');
-        putTotal(8, S(8), '0');
-        putTotal(9, S(9), '$#,##0.00');
-        putTotal(10, S(10), '$#,##0.00');
-        putTotal(11, `IF(G${totRowIdx}>0,J${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
+      const putTot = (colNum, formula, fmt) => {
+        const c = totRow.getCell(colNum);
+        c.value = { formula };
+        c.numFmt = fmt;
+        c.alignment = { vertical: 'middle', horizontal: 'right' };
+      };
+
+      if (deptKey === 'meat_beef') {
+        const tagCow = isEs ? 'Total Res' : '整牛合计';
+        const tagOff = isEs ? 'Vísceras(Jgo)' : '内脏(按套)';
+        putTot(6, `SUMIF(D${startRow}:D${endRow},"${tagCow}",F${startRow}:F${endRow})`, '0.00');
+        putTot(9, `SUMIF(D${startRow}:D${endRow},"${tagCow}",I${startRow}:I${endRow})+SUMIF(D${startRow}:D${endRow},"${tagOff}",I${startRow}:I${endRow})`, '$#,##0.00');
       } else if (deptKey === 'meat_pork') {
-        putTotal(4, S(4), '0');
-        putTotal(5, S(5), '0.00');
-        putTotal(6, S(6), '0.00');
-        putTotal(7, S(7), '0.00');
-        putTotal(8, `IF(G${totRowIdx}>0,J${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
-        putTotal(10, S(10), '$#,##0.00');
+        const tag = isEs ? 'Total Lote' : '批次净重合计';
+        putTot(5, `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, '0');
+        putTot(7, `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, '0.00');
+        putTot(9, `SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})`, '$#,##0.00');
       } else if (deptKey === 'charcuteria') {
-        putTotal(4, S(4), '0');
-        putTotal(5, S(5), '0.00');
-        putTotal(6, S(6), '0.00');
-        putTotal(7, S(7), '0.00');
-        putTotal(9, S(9), '$#,##0.00');
-        putTotal(10, `IF(G${totRowIdx}>0,I${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
+        const tag = isEs ? 'Subtotal Neto' : '品项净重汇总';
+        putTot(5, `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, '0');
+        putTot(7, `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, '0.00');
+        putTot(9, `SUMIF(D${startRow}:D${endRow},"${tag}",I${startRow}:I${endRow})`, '$#,##0.00');
+      } else {
+        const tag = isEs ? 'Resumen Neto' : '实收净重汇总';
+        putTot(5, `SUMIF(D${startRow}:D${endRow},"${tag}",E${startRow}:E${endRow})`, '0');
+        putTot(7, `SUMIF(D${startRow}:D${endRow},"${tag}",G${startRow}:G${endRow})`, '0.00');
+        putTot(8, `SUMIF(D${startRow}:D${endRow},"${tag}",H${startRow}:H${endRow})`, '+0.00;-0.00;0.00');
+        putTot(9, `IF(G${totRowIdx}>0,J${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
+        putTot(10, `SUMIF(D${startRow}:D${endRow},"${tag}",J${startRow}:J${endRow})`, '$#,##0.00');
       }
 
-      /* keep KPI card band above frozen header row visible-looking: freeze after header */
       ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 7 }];
     }
 
@@ -3291,8 +3503,8 @@
       document.querySelectorAll('.dock-tab').forEach(btn => {
         const active = btn.dataset.tab === tabName;
         btn.classList.toggle('dock-tab-active', active);
-        btn.classList.toggle('text-emerald-400', active);
-        btn.classList.toggle('text-slate-400', !active);
+        btn.classList.toggle('text-[#111111]', active);
+        btn.classList.toggle('text-gray-500', !active);
       });
       document.getElementById('view-weigh').classList.toggle('hidden', tabName !== 'weigh');
       document.getElementById('view-bill').classList.toggle('hidden', tabName !== 'bill');
