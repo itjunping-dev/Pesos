@@ -545,16 +545,16 @@
         <!-- Meat sub-department popover (opens above the capsule bar) -->
         <div id="meat-popover" class="hidden absolute bottom-full left-0 right-0 mb-2 px-3 z-10">
           <div class="bg-white rounded-[14px] shadow-2xl border border-slate-200 p-3">
-            <div class="grid grid-cols-3 gap-2">
-              <button type="button" data-sub="beef" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+            <div class="grid grid-cols-3 gap-2.5 w-full">
+              <button type="button" data-sub="beef" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border border-slate-300 bg-slate-50 py-3 px-1.5 text-slate-700 text-xs font-extrabold transition">
                 <span id="ico-sub-beef" class="w-7 h-7"></span>
                 <span id="sub-lbl-beef">牛肉</span>
               </button>
-              <button type="button" data-sub="pork" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+              <button type="button" data-sub="pork" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border border-slate-300 bg-slate-50 py-3 px-1.5 text-slate-700 text-xs font-extrabold transition">
                 <span id="ico-sub-pork" class="w-7 h-7"></span>
                 <span id="sub-lbl-pork">猪肉</span>
               </button>
-              <button type="button" data-sub="chicken" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+              <button type="button" data-sub="chicken" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border border-slate-300 bg-slate-50 py-3 px-1.5 text-slate-700 text-xs font-extrabold transition">
                 <span id="ico-sub-chicken" class="w-7 h-7"></span>
                 <span id="sub-lbl-chicken">鸡肉</span>
               </button>
@@ -562,7 +562,7 @@
           </div>
         </div>
         <div id="dept-capsule-bar" class="hidden">
-          <div id="dept-capsule-scroll" class="flex items-center gap-2 px-3 py-2 overflow-x-auto no-scrollbar"></div>
+          <div id="dept-capsule-scroll" class="grid grid-cols-3 gap-2 px-3 py-2 w-full"></div>
         </div>
         <nav class="grid grid-cols-4 bg-slate-900 border-t border-slate-800 shadow-[0_-4px_16px_rgba(15,23,42,0.25)]" style="padding-bottom:env(safe-area-inset-bottom)">
           <button type="button" data-tab="weigh" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
@@ -1858,7 +1858,7 @@
         const active = c.key === 'meat' ? state.dept === 'meat' : c.key === state.dept;
         return `
           <button type="button" data-deptkey="${c.key}"
-            class="dept-capsule shrink-0 h-12 px-3.5 rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 ${active ? c.activeCls : 'bg-white/90 text-slate-700 border-slate-200 hover:bg-white'}">
+            class="dept-capsule w-full h-11 justify-center rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 px-2 ${active ? c.activeCls : 'bg-white/90 text-slate-700 border-slate-200 hover:bg-white'}">
             <span class="w-[18px] h-[18px] shrink-0">${SVG_ICONS[c.icon] || ''}</span>
             <span>${t(c.labelKey)}</span>
           </button>
@@ -1888,14 +1888,14 @@
 
     function renderMeatPopover() {
       const colors = {
-        beef: 'bg-rose-700 text-white border-rose-700 shadow-sm',
-        pork: 'bg-amber-700 text-white border-amber-700 shadow-sm',
-        chicken: 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
+        beef: 'border-rose-600 bg-rose-50 text-rose-800',
+        pork: 'border-amber-600 bg-amber-50 text-amber-900',
+        chicken: 'border-amber-500 bg-amber-50 text-amber-900'
       };
       document.querySelectorAll('.meat-pop-btn').forEach(btn => {
         const s = btn.dataset.sub;
         const active = state.dept === 'meat' && state.subDept === s;
-        btn.className = `meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition ${active ? colors[s] : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`;
+        btn.className = `meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border py-3 px-1.5 text-xs font-extrabold transition ${active ? colors[s] : 'border-slate-300 bg-slate-50 text-slate-700 hover:bg-slate-100'}`;
       });
     }
 
