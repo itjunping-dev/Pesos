@@ -62,6 +62,14 @@
     /* Anti-overflow for short mobile labels (375px narrow screens) */
     .dock-tab span,
     .dept-capsule span { white-space: nowrap; }
+
+    /* Meat sub-department popover */
+    #meat-popover { transform-origin: bottom center; }
+    #meat-popover.pop-open { animation: meatPopUp 0.18s ease-out; }
+    @keyframes meatPopUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body class="min-h-screen flex justify-center">
@@ -292,12 +300,12 @@
         </div>
         <div class="flex gap-2">
           <select id="sel-his-dept" class="w-36 shrink-0 min-w-0 h-12 px-2 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
-            <option value="all">全部 / Todos</option>
-            <option value="produce">蔬菜水果 / Verduras</option>
-            <option value="meat_beef">牛肉 / Res</option>
-            <option value="meat_pork">猪肉 / Cerdo</option>
-            <option value="meat_chicken">鸡肉 / Pollo</option>
-            <option value="charcuteria">Charcut.</option>
+            <option value="all">全部部门</option>
+            <option value="produce">蔬菜水果</option>
+            <option value="meat_beef">牛肉</option>
+            <option value="meat_pork">猪肉</option>
+            <option value="meat_chicken">鸡肉</option>
+            <option value="charcuteria">熟食部</option>
           </select>
           <div class="relative flex-1 min-w-0">
             <span id="ico-his-search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></span>
@@ -329,11 +337,11 @@
           <label id="lbl-exp-dept" for="sel-export-dept" class="block text-xs font-bold text-slate-700">1. 单独导出指定部门报表 (单表)</label>
           <div class="flex gap-2">
             <select id="sel-export-dept" class="flex-1 min-w-0 h-12 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
-              <option value="produce">蔬菜水果部 (Verduras)</option>
-              <option value="meat_beef">牛肉部 (Res)</option>
-              <option value="meat_pork">猪肉部 (Cerdo)</option>
-              <option value="meat_chicken">鸡肉部 (Pollo)</option>
-              <option value="charcuteria">Charcutería部 (Charcut.)</option>
+              <option value="produce">蔬菜水果部</option>
+              <option value="meat_beef">牛肉部</option>
+              <option value="meat_pork">猪肉部</option>
+              <option value="meat_chicken">鸡肉部</option>
+              <option value="charcuteria">熟食部</option>
             </select>
             <button id="btn-export-single-dept" type="button"
               class="h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
@@ -365,17 +373,19 @@
     ====================================================================== -->
     <main id="view-settings" class="hidden p-3.5 space-y-3.5 flex-1">
 
-      <!-- 1. Saved Custom Items Dictionary Management -->
+      <!-- 1. Saved Custom Items Dictionary Management (collapsed by default) -->
       <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
+        <button id="dict-toggle-btn" type="button" class="w-full min-h-[48px] flex items-center justify-between gap-2 text-left">
+          <div class="min-w-0">
             <h2 id="dict-card-title" class="text-sm font-extrabold text-slate-900">已保存商品词条库</h2>
-            <p id="dict-card-sub" class="text-xs text-slate-500 mt-0.5">称重过一次的新商品会自动保存在这里，可改名或改模板</p>
+            <p id="dict-card-sub" class="hidden text-xs text-slate-500 mt-0.5">称重过一次的新商品会自动保存在这里，可改名或改模板</p>
           </div>
-          <span id="dict-count-badge" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
-        </div>
-
-        <div id="dict-items-list" class="divide-y divide-slate-100"></div>
+          <div class="flex items-center gap-2 shrink-0">
+            <span id="dict-count-badge" class="text-xs font-bold bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg tabular-nums">0</span>
+            <span id="ico-dict-chevron" class="w-4 h-4 text-slate-400 transition-transform duration-200"></span>
+          </div>
+        </button>
+        <div id="dict-items-list" class="hidden divide-y divide-slate-100 border-t border-slate-100 pt-2"></div>
       </section>
 
       <!-- 2. Supplier Dictionary Management -->
@@ -442,27 +452,6 @@
         </button>
       </section>
 
-      <!-- 5. Vector Icon Pack Preview -->
-      <section class="bg-white rounded-[14px] p-4 shadow-sm border border-slate-200/80 space-y-3.5">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 id="iconpack-title" class="text-sm font-extrabold text-slate-900">全套矢量图标包预览</h2>
-            <p id="iconpack-sub" class="text-xs text-slate-500 mt-0.5">支持手机浏览器“添加到主屏幕”生成独立全屏 App 图标</p>
-          </div>
-        </div>
-
-        <!-- 5 Department Icons Grid -->
-        <div>
-          <div id="iconpack-dept-lbl" class="text-xs font-bold text-slate-700 mb-2">部门与子类专属图标 (5项)</div>
-          <div id="preview-dept-icons" class="grid grid-cols-5 gap-2"></div>
-        </div>
-
-        <!-- Action Button Icons Grid -->
-        <div>
-          <div id="iconpack-btn-lbl" class="text-xs font-bold text-slate-700 mb-2">功能按键矢量图标包 (14项)</div>
-          <div id="preview-action-icons" class="grid grid-cols-4 sm:grid-cols-5 gap-2"></div>
-        </div>
-      </section>
     </main>
 
     <!-- Edit Item Modal -->
@@ -552,33 +541,48 @@
 
     <!-- ===== Bottom Dock: department capsule bar + fixed bottom tab bar ===== -->
     <div id="bottom-dock">
-      <div class="max-w-[560px] mx-auto">
+      <div class="max-w-[560px] mx-auto relative">
+        <!-- Meat sub-department popover (opens above the capsule bar) -->
+        <div id="meat-popover" class="hidden absolute bottom-full left-0 right-0 mb-2 px-3 z-10">
+          <div class="bg-white rounded-[14px] shadow-2xl border border-slate-200 p-3">
+            <div class="grid grid-cols-3 gap-2">
+              <button type="button" data-sub="beef" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+                <span id="ico-sub-beef" class="w-7 h-7"></span>
+                <span id="sub-lbl-beef">牛肉</span>
+              </button>
+              <button type="button" data-sub="pork" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+                <span id="ico-sub-pork" class="w-7 h-7"></span>
+                <span id="sub-lbl-pork">猪肉</span>
+              </button>
+              <button type="button" data-sub="chicken" class="meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition">
+                <span id="ico-sub-chicken" class="w-7 h-7"></span>
+                <span id="sub-lbl-chicken">鸡肉</span>
+              </button>
+            </div>
+          </div>
+        </div>
         <div id="dept-capsule-bar" class="hidden">
           <div id="dept-capsule-scroll" class="flex items-center gap-2 px-3 py-2 overflow-x-auto no-scrollbar"></div>
         </div>
         <nav class="grid grid-cols-4 bg-slate-900 border-t border-slate-800 shadow-[0_-4px_16px_rgba(15,23,42,0.25)]" style="padding-bottom:env(safe-area-inset-bottom)">
-          <button type="button" data-tab="weigh" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="weigh" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-weigh" class="w-5 h-5"></span>
             <span id="tab-lbl-weigh">称重</span>
-            <span class="text-[9px] font-semibold opacity-75 leading-none">Pesar</span>
           </button>
-          <button type="button" data-tab="bill" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="bill" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-bill" class="w-5 h-5"></span>
             <span class="flex items-center gap-1">
               <span id="tab-lbl-bill">核对单</span>
               <span id="badge-bill-count" class="hidden bg-amber-400 text-slate-900 text-[10px] font-extrabold min-w-[17px] h-[17px] px-1 rounded-full tabular-nums flex items-center justify-center">0</span>
             </span>
-            <span class="text-[9px] font-semibold opacity-75 leading-none">Recibo</span>
           </button>
-          <button type="button" data-tab="history" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="history" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-history" class="w-5 h-5"></span>
             <span id="tab-lbl-history">历史</span>
-            <span class="text-[9px] font-semibold opacity-75 leading-none">Hist.</span>
           </button>
-          <button type="button" data-tab="settings" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
+          <button type="button" data-tab="settings" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-1 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-settings" class="w-5 h-5"></span>
             <span id="tab-lbl-settings">词条设置</span>
-            <span class="text-[9px] font-semibold opacity-75 leading-none">Ajustes</span>
           </button>
         </nav>
       </div>
@@ -809,6 +813,11 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
           <path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
         </svg>
+      `,
+      chevron: `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
       `
     };
 
@@ -842,6 +851,11 @@
       document.getElementById('ico-export-backup').innerHTML = SVG_ICONS.download;
       document.getElementById('ico-import-backup').innerHTML = SVG_ICONS.upload;
       document.getElementById('ico-install').innerHTML = SVG_ICONS.smartphone;
+
+      document.getElementById('ico-sub-beef').innerHTML = SVG_ICONS.sub_beef;
+      document.getElementById('ico-sub-pork').innerHTML = SVG_ICONS.sub_pork;
+      document.getElementById('ico-sub-chicken').innerHTML = SVG_ICONS.sub_chicken;
+      document.getElementById('ico-dict-chevron').innerHTML = SVG_ICONS.chevron;
     }
 
     /***************************************************************************
@@ -860,10 +874,10 @@
         lblDept: '收货部门',
         deptProduce: '蔬菜水果',
         deptMeat: '肉类部',
-        deptCharcuteria: 'Charcutería',
-        subBeef: '牛肉 (Res)',
-        subPork: '猪肉 (Cerdo)',
-        subChicken: '鸡肉 (Pollo)',
+        deptCharcuteria: '熟食部',
+        subBeef: '牛肉',
+        subPork: '猪肉',
+        subChicken: '鸡肉',
         lblItem: '商品名称 (点选或输入新品)',
         btnTempRule: '切换称重模板',
         phItemName: '输入商品名称 (称重一次自动保存)...',
@@ -991,6 +1005,7 @@
         toastHistoryCleared: '历史记录已清空',
         expScopeHint: '导出来源：历史归档记录（本车未归档记录请在核对单页导出）',
         hisSearchPh: '搜索商品/供应商...',
+        hisAll: '全部部门',
         supMgrTitle: '供应商管理',
         supMgrSub: '保存称重记录时自动记录，可重命名或删除',
         supEmpty: '暂无保存的供应商',
@@ -1174,6 +1189,7 @@
         toastHistoryCleared: 'Historial borrado',
         expScopeHint: 'Fuente: registros archivados (el Recibo actual se exporta en la pestaña Recibo)',
         hisSearchPh: 'Buscar producto/proveedor...',
+        hisAll: 'Todos',
         supMgrTitle: 'Proveedores',
         supMgrSub: 'Se guardan al registrar pesajes. Renombrar o eliminar.',
         supEmpty: 'Aún no hay proveedores guardados',
@@ -1603,10 +1619,28 @@
       document.getElementById('install-title').textContent = t('installTitle');
       document.getElementById('install-guide').textContent = t('installGuide');
       document.getElementById('btn-install-lbl').textContent = t('btnInstallPwa');
-      document.getElementById('iconpack-title').textContent = t('iconpackTitle');
-      document.getElementById('iconpack-sub').textContent = t('iconpackSub');
-      document.getElementById('iconpack-dept-lbl').textContent = t('iconpackDeptLbl');
-      document.getElementById('iconpack-btn-lbl').textContent = t('iconpackBtnLbl');
+
+      document.getElementById('sub-lbl-beef').textContent = t('subBeef');
+      document.getElementById('sub-lbl-pork').textContent = t('subPork');
+      document.getElementById('sub-lbl-chicken').textContent = t('subChicken');
+
+      const hisSel = document.getElementById('sel-his-dept');
+      if (hisSel) {
+        const hisOpts = hisSel.options;
+        hisOpts[0].textContent = t('hisAll');
+        hisOpts[1].textContent = t('deptProduce');
+        hisOpts[2].textContent = t('subBeef');
+        hisOpts[3].textContent = t('subPork');
+        hisOpts[4].textContent = t('subChicken');
+        hisOpts[5].textContent = t('deptCharcuteria');
+      }
+      const expSel = document.getElementById('sel-export-dept');
+      if (expSel) {
+        const expZh = ['蔬菜水果部', '牛肉部', '猪肉部', '鸡肉部', '熟食部'];
+        const expEs = ['Verduras', 'Res', 'Cerdo', 'Pollo', 'Charcut.'];
+        const expLabels = state.lang === 'es' ? expEs : expZh;
+        [...expSel.options].forEach((opt, i) => { opt.textContent = expLabels[i] || opt.value; });
+      }
 
       document.getElementById('modal-edit-title').textContent = t('modalEditTitle');
       document.getElementById('lbl-edit-zh').textContent = t('lblEditZh');
@@ -1786,12 +1820,10 @@
       }).join('');
     }
 
-    /* ==== Department capsule bar (bottom dock layer 2, weigh page only) ==== */
+    /* ==== Department capsule bar (3 main entries) + meat sub-dept popover ==== */
     const DEPT_CAPSULES = [
       { key: 'produce', labelKey: 'deptProduce', icon: 'dept_produce', activeCls: 'bg-emerald-600 text-white border-emerald-600 shadow-sm' },
-      { key: 'meat_beef', labelKey: 'subBeef', icon: 'sub_beef', activeCls: 'bg-rose-700 text-white border-rose-700 shadow-sm' },
-      { key: 'meat_pork', labelKey: 'subPork', icon: 'sub_pork', activeCls: 'bg-amber-700 text-white border-amber-700 shadow-sm' },
-      { key: 'meat_chicken', labelKey: 'subChicken', icon: 'sub_chicken', activeCls: 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm' },
+      { key: 'meat', labelKey: 'deptMeat', icon: 'dept_meat', activeCls: 'bg-rose-700 text-white border-rose-700 shadow-sm' },
       { key: 'charcuteria', labelKey: 'deptCharcuteria', icon: 'dept_charcuteria', activeCls: 'bg-indigo-600 text-white border-indigo-600 shadow-sm' }
     ];
 
@@ -1822,9 +1854,8 @@
     function renderDeptCapsules() {
       const scroll = document.getElementById('dept-capsule-scroll');
       if (!scroll) return;
-      const cur = getDeptKey();
       scroll.innerHTML = DEPT_CAPSULES.map(c => {
-        const active = c.key === cur;
+        const active = c.key === 'meat' ? state.dept === 'meat' : c.key === state.dept;
         return `
           <button type="button" data-deptkey="${c.key}"
             class="dept-capsule shrink-0 h-12 px-3.5 rounded-full text-xs font-extrabold border transition flex items-center gap-1.5 ${active ? c.activeCls : 'bg-white/90 text-slate-700 border-slate-200 hover:bg-white'}">
@@ -1833,9 +1864,39 @@
           </button>
         `;
       }).join('');
-      const act = [...scroll.querySelectorAll('.dept-capsule')].find(b => b.dataset.deptkey === cur);
+      const act = [...scroll.querySelectorAll('.dept-capsule')].find(b => b.dataset.deptkey === (state.dept === 'meat' ? 'meat' : state.dept));
       if (act) act.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
       renderTplButtons();
+    }
+
+    function toggleMeatPopover() {
+      const pop = document.getElementById('meat-popover');
+      if (!pop) return;
+      pop.classList.toggle('hidden');
+      if (!pop.classList.contains('hidden')) {
+        pop.classList.remove('pop-open');
+        void pop.offsetWidth;
+        pop.classList.add('pop-open');
+        renderMeatPopover();
+      }
+    }
+
+    function closeMeatPopover() {
+      const pop = document.getElementById('meat-popover');
+      if (pop) pop.classList.add('hidden');
+    }
+
+    function renderMeatPopover() {
+      const colors = {
+        beef: 'bg-rose-700 text-white border-rose-700 shadow-sm',
+        pork: 'bg-amber-700 text-white border-amber-700 shadow-sm',
+        chicken: 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm'
+      };
+      document.querySelectorAll('.meat-pop-btn').forEach(btn => {
+        const s = btn.dataset.sub;
+        const active = state.dept === 'meat' && state.subDept === s;
+        btn.className = `meat-pop-btn flex flex-col items-center justify-center gap-1.5 min-h-[76px] rounded-xl border text-xs font-extrabold transition ${active ? colors[s] : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'}`;
+      });
     }
 
     function renderTplButtons() {
@@ -2699,7 +2760,7 @@
       meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
       meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
       meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
-      charcuteria: { zh: 'Charcutería', es: 'Charcut.', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+      charcuteria: { zh: '熟食部', es: 'Charcut.', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
     };
 
     function renderSettingsView() {
@@ -2731,43 +2792,6 @@
       });
 
       renderSupplierManager();
-
-      const deptPreviewItems = [
-        { label: '蔬菜水果', color: 'bg-emerald-50 text-emerald-700 border-emerald-200', svg: SVG_ICONS.dept_produce },
-        { label: '牛肉 Res', color: 'bg-rose-50 text-rose-700 border-rose-200', svg: SVG_ICONS.sub_beef },
-        { label: '猪肉 Cerdo', color: 'bg-amber-50 text-amber-800 border-amber-200', svg: SVG_ICONS.sub_pork },
-        { label: '鸡肉 Pollo', color: 'bg-orange-50 text-orange-700 border-orange-200', svg: SVG_ICONS.sub_chicken },
-        { label: 'Charcutería', color: 'bg-indigo-50 text-indigo-700 border-indigo-200', svg: SVG_ICONS.dept_charcuteria }
-      ];
-      document.getElementById('preview-dept-icons').innerHTML = deptPreviewItems.map(d => `
-        <div class="p-2 rounded-xl border ${d.color} flex flex-col items-center justify-center gap-1 text-center">
-          <div class="w-6 h-6">${d.svg}</div>
-          <span class="text-[10px] font-extrabold leading-tight">${d.label}</span>
-        </div>
-      `).join('');
-
-      const actionPreviewItems = [
-        { label: '称重', svg: SVG_ICONS.scale },
-        { label: '扣筐/皮重', svg: SVG_ICONS.crate },
-        { label: '累加', svg: SVG_ICONS.plus },
-        { label: '补斤', svg: SVG_ICONS.replenish },
-        { label: '核对单', svg: SVG_ICONS.receipt },
-        { label: 'Excel', svg: SVG_ICONS.excel },
-        { label: 'WhatsApp', svg: SVG_ICONS.whatsapp },
-        { label: '隐藏成本', svg: SVG_ICONS.eyeOff },
-        { label: '双语切换', svg: SVG_ICONS.globe },
-        { label: '模板设置', svg: SVG_ICONS.settings },
-        { label: '搜索', svg: SVG_ICONS.search },
-        { label: '保存确认', svg: SVG_ICONS.checkSave },
-        { label: '删除', svg: SVG_ICONS.trash },
-        { label: '清空', svg: SVG_ICONS.close }
-      ];
-      document.getElementById('preview-action-icons').innerHTML = actionPreviewItems.map(a => `
-        <div class="p-2 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center justify-center gap-1 text-slate-700">
-          <div class="w-5 h-5">${a.svg}</div>
-          <span class="text-[10px] font-bold text-slate-600">${a.label}</span>
-        </div>
-      `).join('');
     }
 
     function openEditItemModal(itemId) {
@@ -2781,364 +2805,419 @@
     }
 
     /***************************************************************************
-     * 8. ONE-CLICK DEPARTMENT-SEPARATED COLOR-SCALED EXCEL (.XLSX) GENERATOR
+     * 8. PROFESSIONAL DEPARTMENT-SEPARATED EXCEL (.XLSX) REPORT GENERATOR
      ***************************************************************************/
+
+    /* Mix a hex color toward white by `ratio` (0 = original, 1 = white). */
+    function blendHex(hex, ratio) {
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      const mix = c => Math.round(c + (255 - c) * ratio);
+      return [mix(r), mix(g), mix(b)].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    /* Diff / status semantic colors: short red, over green, neutral blue. */
+    function diffColor(diff) {
+      if (diff < -0.05) return { fill: 'FEE2E2', font: '991B1B', bold: true };
+      if (diff > 0.05) return { fill: 'DCFCE7', font: '166534', bold: true };
+      return { fill: 'E0F2FE', font: '075985', bold: false };
+    }
+
+    /* Per-department visual themes (title banner / zebra rows / totals row). */
     const DEPT_EXCEL_THEMES = {
       produce: {
-        sheetName: '蔬菜水果部',
-        title: '蔬菜水果部 · 收货比对与开单明细表 (Frutas y Verduras)',
-        primary: '1B5E20',
-        accentBg: 'E8F5E9',
-        accentText: '1B5E20',
-        border: 'A5D6A7'
+        sheetName: { zh: '蔬菜水果部', es: 'Verduras' },
+        title: { zh: '蔬菜水果部 — 收货比对与成本核算报表', es: 'Verduras — Reporte de Recepción y Costos' },
+        primary: '1E4D3B', zebra: 'F0F7F4', totalBg: 'D6EAE1'
       },
       meat_beef: {
-        sheetName: '牛肉部',
-        title: '牛肉部 · 收货比对与开单明细表 (Carnicería - Res)',
-        primary: '7F1D1D',
-        accentBg: 'FEF2F2',
-        accentText: '7F1D1D',
-        border: 'FECACA'
+        sheetName: { zh: '牛肉部', es: 'Res' },
+        title: { zh: '牛肉部 — 收货比对与成本核算报表', es: 'Res — Reporte de Recepción y Costos' },
+        primary: '6B212A', zebra: 'FDF2F3', totalBg: 'F5D5D9'
       },
       meat_pork: {
-        sheetName: '猪肉部',
-        title: '猪肉部 · 收货比对与开单明细表 (Carnicería - Cerdo)',
-        primary: '7C2D12',
-        accentBg: 'FFF7ED',
-        accentText: '7C2D12',
-        border: 'FED7AA'
+        sheetName: { zh: '猪肉部', es: 'Cerdo' },
+        title: { zh: '猪肉部 — 收货比对与成本核算报表', es: 'Cerdo — Reporte de Recepción y Costos' },
+        primary: '7C3A1D', zebra: 'FDF6F2', totalBg: 'F5DFD3'
       },
       meat_chicken: {
-        sheetName: '鸡肉部',
-        title: '鸡肉部 · 收货比对与开单明细表 (Carnicería - Pollo)',
-        primary: '92400E',
-        accentBg: 'FFFBEB',
-        accentText: '92400E',
-        border: 'FDE68A'
+        sheetName: { zh: '鸡肉部', es: 'Pollo' },
+        title: { zh: '鸡肉部 — 收货比对与成本核算报表', es: 'Pollo — Reporte de Recepción y Costos' },
+        primary: '784B12', zebra: 'FEF9EE', totalBg: 'F7E5C2'
       },
       charcuteria: {
-        sheetName: 'Charcutería部',
-        title: 'Charcutería部 · 收货比对与开单明细表 (Charcutería)',
-        primary: '1E3A8A',
-        accentBg: 'EFF6FF',
-        accentText: '1E3A8A',
-        border: 'BFDBFE'
+        sheetName: { zh: '熟食部', es: 'Charcut.' },
+        title: { zh: '熟食部 — 收货比对与成本核算报表', es: 'Charcut. — Reporte de Recepción y Costos' },
+        primary: '1E3A5F', zebra: 'F0F5FA', totalBg: 'D4E2F2'
       }
     };
 
-    function getDiffColorFill(diff) {
-      if (diff < -1.0) return 'FCA5A5';
-      if (diff < 0)    return 'FECACA';
-      if (diff === 0)  return 'FEF9C3';
-      if (diff <= 0.6) return 'DCFCE7';
-      return '86EFAC';
+    /* Bilingual column definitions; `type` drives format + alignment + coloring. */
+    function buildDeptColumns(deptKey) {
+      const T = (zh, es, type) => ({ zh, es: es || zh, type: type || 'text' });
+      if (deptKey === 'meat_beef') {
+        return [
+          T('日期', 'Fecha'),
+          T('供应商', 'Proveedor'),
+          T('商品名称', 'Producto'),
+          T('头数', 'Cabezas', 'int'),
+          T('半边A(kg)', 'Mitad A (kg)', 'kg'),
+          T('半边B(kg)', 'Mitad B (kg)', 'kg'),
+          T('牛肉净重(kg)', 'Neto Res (kg)', 'kg'),
+          T('内脏套数', 'Juegos', 'int'),
+          T('内脏金额($)', 'Vísceras ($)', 'money'),
+          T('开单总额($)', 'Total ($)', 'money'),
+          T('牛肉均价($/kg)', 'Costo Res ($/kg)', 'cost'),
+          T('单头明细', 'Detalle')
+        ];
+      }
+      if (deptKey === 'meat_pork') {
+        return [
+          T('日期', 'Fecha'),
+          T('供应商', 'Proveedor'),
+          T('商品名称', 'Producto'),
+          T('头数', 'Cabezas', 'int'),
+          T('地秤累加(kg)', 'Bruto (kg)', 'kg'),
+          T('皮重(kg)', 'Tara (kg)', 'kg'),
+          T('实收净重(kg)', 'Neto (kg)', 'kg'),
+          T('单头均重(kg)', 'Prom./Cab. (kg)', 'kg'),
+          T('单价($/kg)', 'Precio ($/kg)', 'money'),
+          T('开单总额($)', 'Total ($)', 'money'),
+          T('多轮明细', 'Tandas')
+        ];
+      }
+      if (deptKey === 'charcuteria') {
+        return [
+          T('日期', 'Fecha'),
+          T('供应商', 'Proveedor'),
+          T('商品名称', 'Producto'),
+          T('件数', 'Piezas', 'int'),
+          T('毛重(kg)', 'Bruto (kg)', 'kg'),
+          T('扣筐(kg)', 'Tara (kg)', 'kg'),
+          T('实收净重(kg)', 'Neto (kg)', 'kg'),
+          T('单价($/kg)', 'Precio ($/kg)', 'money'),
+          T('开单总额($)', 'Total ($)', 'money'),
+          T('真实单价($/kg)', 'Costo ($/kg)', 'cost')
+        ];
+      }
+      return [
+        T('日期', 'Fecha'),
+        T('供应商', 'Proveedor'),
+        T('商品名称', 'Producto'),
+        T('计价方式', 'Modo', 'status'),
+        T('筐数', 'Cestas', 'int'),
+        T('标称总重(kg)', 'Meta (kg)', 'kg'),
+        T('毛重(kg)', 'Bruto (kg)', 'kg'),
+        T('扣筐皮重(kg)', 'Tara (kg)', 'kg'),
+        T('补斤(kg)', 'Reponer (kg)', 'kg'),
+        T('实收净重(kg)', 'Neto (kg)', 'kg'),
+        T('净重差额(kg)', 'Dif. (kg)', 'diff'),
+        T('比对状态', 'Estado', 'status'),
+        T('开单总额($)', 'Total ($)', 'money'),
+        T('真实单价($/kg)', 'Costo ($/kg)', 'cost')
+      ];
     }
 
-    function getBlueScaleFill(ratio) {
-      if (ratio >= 0.75) return '93C5FD';
-      if (ratio >= 0.45) return 'BFDBFE';
-      if (ratio >= 0.2)  return 'DBEAFE';
-      return 'EFF6FF';
+    /* One data row per record (formulas keep net weight / diff live in Excel). */
+    function buildDeptRowValues(deptKey, rec, rowIdx, lang) {
+      const c = rec.calc;
+      const itemLabel = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, lang === 'es' ? 'es' : 'zh');
+      if (deptKey === 'meat_beef') {
+        const sumA = round2((c.cowDetails || []).reduce((s, x) => s + x.halfA, 0));
+        const sumB = round2((c.cowDetails || []).reduce((s, x) => s + x.halfB, 0));
+        const detailStr = (c.cowDetails || []).map((x, k) => `#${k + 1}: ${x.halfA}+${x.halfB}kg @$${x.unitPrice}`).join('; ');
+        return [rec.date, rec.supplier, itemLabel, c.validHeads || 0, sumA, sumB,
+          { formula: `E${rowIdx}+F${rowIdx}`, result: c.beefNet },
+          c.offalSets || 0, c.offalAmount || 0, c.billedAmount, c.realUnitCost, detailStr];
+      }
+      if (deptKey === 'meat_pork') {
+        const roundsStr = (c.rounds || []).map((v, k) => lang === 'es' ? `T${k + 1}:${v}kg` : `第${k + 1}轮:${v}kg`).join(' + ');
+        return [rec.date, rec.supplier, itemLabel, c.heads || 0, c.grossTotal, c.tare || 0,
+          { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
+          c.avgHeadWeight || 0, c.kgPrice, c.billedAmount, roundsStr];
+      }
+      if (deptKey === 'charcuteria') {
+        return [rec.date, rec.supplier, itemLabel, c.pieces || 0, c.grossTotal, c.tareTotal || 0,
+          { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
+          c.kgPrice, c.billedAmount, c.realUnitCost];
+      }
+      const isEs = lang === 'es';
+      const modeLabel = c.priceMode === 'crate' ? (isEs ? 'x Cesta' : '按筐') : (isEs ? 'x Kg' : '按公斤');
+      const statusLabel = c.weightDiff < 0
+        ? (isEs ? 'Faltante' : '缺重')
+        : (c.weightDiff > 0 ? (isEs ? 'Sobrepeso' : '超重不加价') : (isEs ? 'Completo' : '足秤'));
+      return [rec.date, rec.supplier, itemLabel, modeLabel,
+        c.priceMode === 'crate' ? c.quotedCrates : 0,
+        c.priceMode === 'crate' ? c.expectedNet : c.finalNet,
+        c.grossTotal, c.tareTotal, c.replenish,
+        { formula: `G${rowIdx}-H${rowIdx}+I${rowIdx}`, result: c.finalNet },
+        { formula: `J${rowIdx}-F${rowIdx}`, result: c.weightDiff },
+        statusLabel, c.billedAmount, c.realUnitCost];
     }
 
-    function getAmberScaleFill(ratio) {
-      if (ratio >= 0.7) return 'FCD34D';
-      if (ratio >= 0.35) return 'FDE68A';
-      if (ratio > 0) return 'FEF3C7';
-      return 'FFFFFF';
+    /* KPI dashboard cards, computed with live Excel formulas over the data range. */
+    function buildDeptKpis(deptKey, startRow, endRow) {
+      const S = col => `SUM(${col}${startRow}:${col}${endRow})`;
+      if (deptKey === 'produce') {
+        return [
+          { zh: '总筐数', es: 'Cestas', formula: S('E'), fmt: '0' },
+          { zh: '标称总重(kg)', es: 'Meta (kg)', formula: S('F'), fmt: '0.00' },
+          { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('J'), fmt: '0.00' },
+          { zh: '净重差额(kg)', es: 'Dif. (kg)', formula: S('K'), fmt: '+0.00;-0.00;0.00' },
+          { zh: '开单总金额($)', es: 'Total ($)', formula: S('M'), fmt: '$#,##0.00' },
+          { zh: '综合真实均价($/kg)', es: 'Costo real ($/kg)', formula: `IF(SUM(J${startRow}:J${endRow})>0,SUM(M${startRow}:M${endRow})/SUM(J${startRow}:J${endRow}),0)`, fmt: '$#,##0.00' }
+        ];
+      }
+      if (deptKey === 'meat_beef') {
+        return [
+          { zh: '总头数', es: 'Cabezas', formula: S('D'), fmt: '0' },
+          { zh: '牛肉净重(kg)', es: 'Neto Res (kg)', formula: S('G'), fmt: '0.00' },
+          { zh: '内脏金额($)', es: 'Vísceras ($)', formula: S('I'), fmt: '$#,##0.00' },
+          { zh: '开单总金额($)', es: 'Total ($)', formula: S('J'), fmt: '$#,##0.00' },
+          { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(J${startRow}:J${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+        ];
+      }
+      if (deptKey === 'meat_pork') {
+        return [
+          { zh: '总头数', es: 'Cabezas', formula: S('D'), fmt: '0' },
+          { zh: '地秤总毛重(kg)', es: 'Bruto (kg)', formula: S('E'), fmt: '0.00' },
+          { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('G'), fmt: '0.00' },
+          { zh: '开单总金额($)', es: 'Total ($)', formula: S('J'), fmt: '$#,##0.00' },
+          { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(J${startRow}:J${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+        ];
+      }
+      return [
+        { zh: '记录笔数', es: 'Registros', formula: `COUNTA(A${startRow}:A${endRow})`, fmt: '0' },
+        { zh: '总件数', es: 'Piezas', formula: S('D'), fmt: '0' },
+        { zh: '实收净重(kg)', es: 'Neto (kg)', formula: S('G'), fmt: '0.00' },
+        { zh: '开单总金额($)', es: 'Total ($)', formula: S('I'), fmt: '$#,##0.00' },
+        { zh: '综合均价($/kg)', es: 'Costo ($/kg)', formula: `IF(SUM(G${startRow}:G${endRow})>0,SUM(I${startRow}:I${endRow})/SUM(G${startRow}:G${endRow}),0)`, fmt: '$#,##0.00' }
+      ];
     }
 
     function buildDepartmentSheet(workbook, deptKey, deptRecords) {
+      const lang = state.lang === 'es' ? 'es' : 'zh';
+      const isEs = lang === 'es';
       const theme = DEPT_EXCEL_THEMES[deptKey];
-      const ws = workbook.addWorksheet(theme.sheetName, {
-        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 }
+      const columns = buildDeptColumns(deptKey);
+      const colCount = columns.length;
+      const FONT = 'Calibri';
+
+      const ws = workbook.addWorksheet(theme.sheetName[lang], {
+        pageSetup: { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 },
+        views: [{ state: 'frozen', xSplit: 3, ySplit: 7 }]
       });
 
-      const isBeef = deptKey === 'meat_beef';
-      const isPork = deptKey === 'meat_pork';
-      const isCharc = deptKey === 'charcuteria';
+      const kpiBg = blendHex(theme.primary, 0.90);
+      const kpiBorder = blendHex(theme.primary, 0.62);
+      const thinGray = 'E2E8F0';
+      const startRow = 8;
+      const endRow = startRow + deptRecords.length - 1;
+      const rowValuesList = deptRecords.map((rec, i) => buildDeptRowValues(deptKey, rec, startRow + i, lang));
 
-      let columns = [];
-      if (isBeef) {
-        columns = [
-          { header: '日期\nFecha', width: 13 },
-          { header: '供应商\nProveedor', width: 18 },
-          { header: '商品名称\nProducto', width: 20 },
-          { header: '牛头数\nCabezas', width: 10 },
-          { header: '半边A累加(kg)\nMitad A', width: 14 },
-          { header: '半边B累加(kg)\nMitad B', width: 14 },
-          { header: '牛肉实收净重(kg)\nPeso Neto Res', width: 16 },
-          { header: '内脏套数\nJgos. Vísceras', width: 13 },
-          { header: '内脏金额($)\nMonto Vísc.', width: 14 },
-          { header: '就地开单总额($)\nTotal Factura', width: 17 },
-          { header: '牛肉均价($/kg)\nCosto Res/kg', width: 15 },
-          { header: '单头明细备注\nDetalle', width: 28 }
-        ];
-      } else if (isPork) {
-        columns = [
-          { header: '日期\nFecha', width: 13 },
-          { header: '供应商\nProveedor', width: 18 },
-          { header: '商品名称\nProducto', width: 20 },
-          { header: '记录头数\nCabezas', width: 11 },
-          { header: '地秤累加重(kg)\nPeso Bruto', width: 15 },
-          { header: '临时皮重(kg)\nTara', width: 13 },
-          { header: '最终实收净重(kg)\nPeso Neto', width: 16 },
-          { header: '单头均重(kg)\nProm./Cab.', width: 13 },
-          { header: '单价($/kg)\nPrecio/kg', width: 13 },
-          { header: '就地开单总额($)\nTotal Factura', width: 17 },
-          { header: '多轮过磅明细\nTandas', width: 26 }
-        ];
-      } else if (isCharc) {
-        columns = [
-          { header: '日期\nFecha', width: 13 },
-          { header: '供应商\nProveedor', width: 18 },
-          { header: '商品名称\nProducto', width: 22 },
-          { header: '件数/条数\nPiezas', width: 11 },
-          { header: '上秤毛重(kg)\nPeso Bruto', width: 14 },
-          { header: '特殊扣筐(kg)\nTara', width: 13 },
-          { header: '最终实收净重(kg)\nPeso Neto', width: 16 },
-          { header: '单价($/kg)\nPrecio/kg', width: 13 },
-          { header: '就地开单总额($)\nTotal Factura', width: 17 },
-          { header: '门店真实单价($/kg)\nCosto Real/kg', width: 16 }
-        ];
-      } else {
-        columns = [
-          { header: '日期\nFecha', width: 13 },
-          { header: '供应商\nProveedor', width: 18 },
-          { header: '商品名称\nProducto', width: 22 },
-          { header: '计价方式\nModo', width: 12 },
-          { header: '筐数\nCestas', width: 9 },
-          { header: '标称总重(kg)\nPeso Esp.', width: 14 },
-          { header: '地磅毛重(kg)\nPeso Bruto', width: 14 },
-          { header: '扣筐皮重(kg)\nTara', width: 13 },
-          { header: '现场补斤(kg)\nReposición', width: 13 },
-          { header: '实收净重(kg)\nPeso Neto', width: 14 },
-          { header: '净重差额(kg)\nDiferencia', width: 14 },
-          { header: '比对状态\nEstado', width: 14 },
-          { header: '就地开单总额($)\nTotal Factura', width: 16 },
-          { header: '门店真实单价($/kg)\nCosto Real/kg', width: 16 }
-        ];
-      }
+      /* ---- auto column widths (header + content + 5 chars padding) ---- */
+      const dispLen = s => String(s == null ? '' : s).split('').reduce((n, ch) => n + (/[\u2E80-\u9FFF\uF900-\uFDFF\uFF00-\uFFEF]/.test(ch) ? 2 : 1), 0);
+      const widths = columns.map((col, idx) => {
+        let len = dispLen(col[lang]) + 2;
+        rowValuesList.forEach(vals => {
+          const v = vals[idx];
+          const raw = (v && typeof v === 'object') ? (v.result != null ? String(v.result) : '') : v;
+          len = Math.max(len, dispLen(raw));
+        });
+        return Math.max(9, Math.min(42, Math.ceil(len) + 5));
+      });
+      ws.columns = widths.map(w => ({ width: w }));
 
-      ws.columns = columns.map(c => ({ width: c.width }));
-      const colCount = columns.length;
-
+      /* ---- Row 1: title banner ---- */
       ws.mergeCells(1, 1, 1, colCount);
       const r1 = ws.getCell(1, 1);
-      r1.value = theme.title;
-      r1.font = { name: 'Arial', size: 14, bold: true, color: { argb: 'FFFFFFFF' } };
+      r1.value = theme.title[lang];
+      r1.font = { name: FONT, size: 15, bold: true, color: { argb: 'FFFFFFFF' } };
       r1.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.primary } };
       r1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
       ws.getRow(1).height = 32;
 
+      /* ---- Row 2: subtitle (export date/time + currency) ---- */
       ws.mergeCells(2, 1, 2, colCount);
       const r2 = ws.getCell(2, 1);
-      r2.value = `生成时间: ${new Date().toLocaleString()}   |   独立部门核算表 · 支持 WhatsApp 直接转发核对`;
-      r2.font = { name: 'Arial', size: 9.5, italic: true, color: { argb: 'FF' + theme.accentText } };
-      r2.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.accentBg } };
+      const now = new Date();
+      const p2 = n => String(n).padStart(2, '0');
+      const stamp = `${now.getFullYear()}-${p2(now.getMonth() + 1)}-${p2(now.getDate())} ${p2(now.getHours())}:${p2(now.getMinutes())}`;
+      r2.value = isEs
+        ? `Exportado: ${stamp}   |   Moneda: USD ($)   |   ${deptRecords.length} registros`
+        : `导出时间: ${stamp}   |   币种: USD ($)   |   共 ${deptRecords.length} 笔`;
+      r2.font = { name: FONT, size: 10, italic: true, color: { argb: 'FF64748B' } };
       r2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-      ws.getRow(2).height = 20;
+      ws.getRow(2).height = 22;
 
-      const totalNetSum = round2(deptRecords.reduce((s, r) => s + r.calc.finalNet, 0));
-      const totalAmtSum = round2(deptRecords.reduce((s, r) => s + r.calc.billedAmount, 0));
-      ws.mergeCells(3, 1, 3, colCount);
-      const r3 = ws.getCell(3, 1);
-      r3.value = `【部门汇总 KPI】  记录笔数: ${deptRecords.length} 笔    |    实收总净重: ${fmtKg(totalNetSum)} kg    |    就地开单总金额: ${fmtMoney(totalAmtSum)}`;
-      r3.font = { name: 'Arial', size: 10.5, bold: true, color: { argb: 'FF0F172A' } };
-      r3.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF8FAFC' } };
-      r3.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-      ws.getRow(3).height = 24;
+      /* Row 3: spacer */
+      ws.getRow(3).height = 6;
 
-      ws.mergeCells(4, 1, 4, colCount);
-      const r4 = ws.getCell(4, 1);
-      r4.value = '色阶图例说明：  [红→黄→绿] 净重差额(缺重红/持平黄/足秤超重绿)   |   [浅黄→琥珀] 扣筐皮重梯度   |   [浅蓝→深蓝] 开单金额梯度';
-      r4.font = { name: 'Arial', size: 8.5, color: { argb: 'FF475569' } };
-      r4.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF1F5F9' } };
-      r4.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
-      ws.getRow(4).height = 19;
+      /* ---- Rows 4-5: KPI dashboard cards ---- */
+      const kpis = buildDeptKpis(deptKey, startRow, endRow);
+      const base = Math.floor(colCount / kpis.length);
+      const extra = colCount % kpis.length;
+      let cursor = 1;
+      kpis.forEach((kpi, kIdx) => {
+        const span = base + (kIdx < extra ? 1 : 0);
+        const c1 = cursor;
+        const c2 = cursor + span - 1;
+        cursor = c2 + 1;
+        ws.mergeCells(4, c1, 4, c2);
+        ws.mergeCells(5, c1, 5, c2);
+        for (let cc = c1; cc <= c2; cc++) {
+          [4, 5].forEach(rr => {
+            const cell = ws.getCell(rr, cc);
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + kpiBg } };
+            cell.border = {
+              top: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
+              bottom: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
+              left: { style: 'thin', color: { argb: 'FF' + (cc === c1 ? kpiBorder : kpiBg) } },
+              right: { style: 'thin', color: { argb: 'FF' + (cc === c2 ? kpiBorder : kpiBg) } }
+            };
+          });
+        }
+        const lbl = ws.getCell(4, c1);
+        lbl.value = kpi[lang];
+        lbl.font = { name: FONT, size: 9, bold: true, color: { argb: 'FF475569' } };
+        lbl.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+        const val = ws.getCell(5, c1);
+        val.value = { formula: kpi.formula };
+        val.numFmt = kpi.fmt;
+        val.font = { name: FONT, size: 14, bold: true, color: { argb: 'FF' + theme.primary } };
+        val.alignment = { vertical: 'middle', horizontal: 'center' };
+      });
+      ws.getRow(4).height = 18;
+      ws.getRow(5).height = 26;
 
-      const headerRow = ws.getRow(5);
-      headerRow.height = 30;
+      /* Row 6: spacer */
+      ws.getRow(6).height = 8;
+
+      /* ---- Row 7: table header (frozen via views) ---- */
+      const headerRow = ws.getRow(7);
+      headerRow.height = 32;
       columns.forEach((col, idx) => {
         const cell = headerRow.getCell(idx + 1);
-        cell.value = col.header;
-        cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.value = col[lang];
+        cell.font = { name: FONT, size: 10, bold: true, color: { argb: 'FFFFFFFF' } };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.primary } };
         cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
         cell.border = {
-          top: { style: 'thin', color: { argb: 'FF' + theme.primary } },
+          top: { style: 'medium', color: { argb: 'FF' + theme.primary } },
           bottom: { style: 'medium', color: { argb: 'FF' + theme.primary } },
           left: { style: 'thin', color: { argb: 'FFFFFFFF' } },
           right: { style: 'thin', color: { argb: 'FFFFFFFF' } }
         };
       });
 
-      const maxAmount = Math.max(...deptRecords.map(r => r.calc.billedAmount), 1);
-      const maxTare = Math.max(...deptRecords.map(r => r.calc.tareTotal || r.calc.tare || 0), 1);
-
-      const startRow = 6;
-      deptRecords.forEach((rec, i) => {
-        const rowIdx = startRow + i;
-        const row = ws.getRow(rowIdx);
+      /* ---- data detail rows ---- */
+      const maxAmount = Math.max(...deptRecords.map(r => r.calc.billedAmount || 0), 1);
+      const maxCost = Math.max(...deptRecords.map(r => r.calc.realUnitCost || 0), 1);
+      rowValuesList.forEach((vals, i) => {
+        const row = ws.getRow(startRow + i);
         row.height = 24;
+        const rec = deptRecords[i];
         const c = rec.calc;
-        const itemLabel = getItemDisplayName({ zh: rec.itemZh, es: rec.itemEs }, 'bi');
-        const zebraBg = i % 2 === 1 ? 'FFF8FAFC' : 'FFFFFFFF';
+        const zebraBg = i % 2 === 1 ? theme.zebra : 'FFFFFFFF';
 
-        let rowValues = [];
-        if (isBeef) {
-          const sumA = round2((c.cowDetails || []).reduce((s, x) => s + x.halfA, 0));
-          const sumB = round2((c.cowDetails || []).reduce((s, x) => s + x.halfB, 0));
-          const detailStr = (c.cowDetails || []).map((x, k) => `#${k + 1}: ${x.halfA}+${x.halfB}kg @$${x.unitPrice}`).join('; ');
-          rowValues = [
-            rec.date, rec.supplier, itemLabel, c.validHeads || 0, sumA, sumB,
-            { formula: `E${rowIdx}+F${rowIdx}`, result: c.beefNet },
-            c.offalSets || 0, c.offalAmount || 0, c.billedAmount, c.realUnitCost, detailStr
-          ];
-        } else if (isPork) {
-          const roundsStr = (c.rounds || []).map((v, k) => `第${k + 1}轮:${v}kg`).join(' + ');
-          rowValues = [
-            rec.date, rec.supplier, itemLabel, c.heads || 0, c.grossTotal, c.tare || 0,
-            { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
-            c.avgHeadWeight || 0, c.kgPrice, c.billedAmount, roundsStr
-          ];
-        } else if (isCharc) {
-          rowValues = [
-            rec.date, rec.supplier, itemLabel, c.pieces || 0, c.grossTotal, c.tareTotal || 0,
-            { formula: `E${rowIdx}-F${rowIdx}`, result: c.finalNet },
-            c.kgPrice, c.billedAmount, c.realUnitCost
-          ];
-        } else {
-          const modeLabel = c.priceMode === 'crate' ? '按筐/Cesta' : '按公斤/kg';
-          const expNet = c.priceMode === 'crate' ? c.expectedNet : c.finalNet;
-          const statusLabel = c.weightDiff < 0 ? '缺重/Falta' : (c.weightDiff > 0 ? '超重不加价' : '足秤/Exacto');
-          rowValues = [
-            rec.date, rec.supplier, itemLabel, modeLabel,
-            c.priceMode === 'crate' ? c.quotedCrates : 0,
-            expNet, c.grossTotal, c.tareTotal, c.replenish,
-            { formula: `G${rowIdx}-H${rowIdx}+I${rowIdx}`, result: c.finalNet },
-            { formula: `J${rowIdx}-F${rowIdx}`, result: c.weightDiff },
-            statusLabel, c.billedAmount, c.realUnitCost
-          ];
-        }
-
-        rowValues.forEach((val, colIdx) => {
+        vals.forEach((val, colIdx) => {
           const cell = row.getCell(colIdx + 1);
           cell.value = val;
-          cell.font = { name: 'Arial', size: 9.5, color: { argb: 'FF0F172A' } };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: zebraBg } };
-          cell.alignment = { vertical: 'middle', horizontal: colIdx <= 3 ? 'left' : 'right' };
+          const colType = columns[colIdx].type || 'text';
+          cell.font = { name: FONT, size: 10, color: { argb: 'FF0F172A' } };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + zebraBg } };
+          cell.alignment = { vertical: 'middle', horizontal: 'left' };
           cell.border = {
-            top: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            bottom: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            left: { style: 'thin', color: { argb: 'FFE2E8F0' } },
-            right: { style: 'thin', color: { argb: 'FFE2E8F0' } }
+            top: { style: 'thin', color: { argb: 'FF' + thinGray } },
+            bottom: { style: 'thin', color: { argb: 'FF' + thinGray } },
+            left: { style: 'thin', color: { argb: 'FF' + thinGray } },
+            right: { style: 'thin', color: { argb: 'FF' + thinGray } }
           };
 
-          if (!isBeef && !isPork && !isCharc) {
-            if ([5, 6, 7, 8, 9].includes(colIdx)) cell.numFmt = '0.0';
-            if (colIdx === 10) {
-              cell.numFmt = '+0.0;-0.0;0.0';
-              cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: c.weightDiff < 0 ? 'FF991B1B' : 'FF14532D' } };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getDiffColorFill(c.weightDiff) } };
-            }
-            if (colIdx === 11) {
-              cell.alignment = { vertical: 'middle', horizontal: 'center' };
-              cell.font = { name: 'Arial', size: 9, bold: true, color: { argb: c.weightDiff < 0 ? 'FF991B1B' : 'FF166534' } };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: c.weightDiff < 0 ? 'FFFEE2E2' : 'FFDCFCE7' } };
-            }
-            if (colIdx === 7 && c.tareTotal > 0) {
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getAmberScaleFill(c.tareTotal / maxTare) } };
-            }
-            if (colIdx === 12) {
-              cell.numFmt = '$#,##0.00';
-              cell.font = { name: 'Arial', size: 9.5, bold: true, color: { argb: 'FF0F172A' } };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
-            }
-            if (colIdx === 13) cell.numFmt = '$#,##0.00';
-          } else if (isBeef) {
-            if ([4, 5, 6].includes(colIdx)) cell.numFmt = '0.0';
-            if ([8, 9, 10].includes(colIdx)) cell.numFmt = '$#,##0.00';
-            if (colIdx === 9) {
-              cell.font = { name: 'Arial', size: 9.5, bold: true };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
-            }
-          } else if (isPork) {
-            if ([4, 5, 6, 7].includes(colIdx)) cell.numFmt = '0.0';
-            if ([8, 9].includes(colIdx)) cell.numFmt = '$#,##0.00';
-            if (colIdx === 9) {
-              cell.font = { name: 'Arial', size: 9.5, bold: true };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
-            }
-          } else if (isCharc) {
-            if ([4, 5, 6].includes(colIdx)) cell.numFmt = '0.0';
-            if ([7, 8, 9].includes(colIdx)) cell.numFmt = '$#,##0.00';
-            if (colIdx === 8) {
-              cell.font = { name: 'Arial', size: 9.5, bold: true };
-              cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + getBlueScaleFill(c.billedAmount / maxAmount) } };
-            }
+          if (colType === 'int') { cell.numFmt = '0'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
+          if (colType === 'kg') { cell.numFmt = '0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
+          if (colType === 'diff') { cell.numFmt = '+0.00;-0.00;0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
+          if (colType === 'money' || colType === 'cost') { cell.numFmt = '$#,##0.00'; cell.alignment = { vertical: 'middle', horizontal: 'right' }; }
+          if (colType === 'status') { cell.alignment = { vertical: 'middle', horizontal: 'center' }; }
+
+          /* semantic coloring: diff column + status column */
+          if (colType === 'diff' || (colType === 'status' && colIdx === 11)) {
+            const dc = diffColor(c.weightDiff || 0);
+            cell.font = { name: FONT, size: 10, bold: dc.bold, color: { argb: 'FF' + dc.font } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + dc.fill } };
+          }
+
+          /* amount / real-cost columns: bold + soft theme-tinted gradient by value */
+          if (colType === 'money' || colType === 'cost') {
+            const ratio = colType === 'money' ? (c.billedAmount || 0) / maxAmount : (c.realUnitCost || 0) / maxCost;
+            const tint = blendHex(theme.primary, 0.94 - Math.min(0.42, ratio * 0.42));
+            cell.font = { name: FONT, size: 10, bold: true, color: { argb: 'FF0F172A' } };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + tint } };
           }
         });
       });
 
-      const endRow = startRow + deptRecords.length - 1;
+      /* ---- TOTAL row: native SUM formulas + weighted average ---- */
       const totRowIdx = endRow + 1;
       const totRow = ws.getRow(totRowIdx);
-      totRow.height = 26;
-
+      totRow.height = 28;
       for (let colIdx = 0; colIdx < colCount; colIdx++) {
         const cell = totRow.getCell(colIdx + 1);
-        cell.font = { name: 'Arial', size: 10, bold: true, color: { argb: 'FF' + theme.accentText } };
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.accentBg } };
+        cell.font = { name: FONT, size: 10.5, bold: true, color: { argb: 'FF0F172A' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF' + theme.totalBg } };
         cell.border = {
-          top: { style: 'medium', color: { argb: 'FF' + theme.primary } },
+          top: { style: 'thin', color: { argb: 'FF' + theme.primary } },
           bottom: { style: 'double', color: { argb: 'FF' + theme.primary } },
-          left: { style: 'thin', color: { argb: 'FF' + theme.border } },
-          right: { style: 'thin', color: { argb: 'FF' + theme.border } }
+          left: { style: 'thin', color: { argb: 'FF' + kpiBorder } },
+          right: { style: 'thin', color: { argb: 'FF' + kpiBorder } }
         };
+      }
+      const colLetter = i => ws.getColumn(i).letter;
+      const S = i => `SUM(${colLetter(i)}${startRow}:${colLetter(i)}${endRow})`;
+      const putTotal = (colNum, formula, fmt) => {
+        const cell = totRow.getCell(colNum);
+        cell.value = { formula };
+        cell.numFmt = fmt;
+        cell.alignment = { vertical: 'middle', horizontal: 'right' };
+      };
+      totRow.getCell(1).value = isEs ? 'TOTAL' : '合计';
+      totRow.getCell(1).alignment = { vertical: 'middle', horizontal: 'left' };
 
-        if (colIdx === 0) {
-          cell.value = '合计 / TOTAL';
-          cell.alignment = { vertical: 'middle', horizontal: 'left' };
-        } else {
-          const colLetter = ws.getColumn(colIdx + 1).letter;
-          if (!isBeef && !isPork && !isCharc) {
-            if ([4, 5, 6, 7, 8, 9, 10].includes(colIdx)) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = colIdx === 4 ? '0' : (colIdx === 10 ? '+0.0;-0.0;0.0' : '0.0');
-            } else if (colIdx === 12) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = '$#,##0.00';
-            }
-          } else if (isBeef) {
-            if ([3, 4, 5, 6, 7].includes(colIdx)) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = (colIdx === 3 || colIdx === 7) ? '0' : '0.0';
-            } else if ([8, 9].includes(colIdx)) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = '$#,##0.00';
-            }
-          } else if (isPork) {
-            if ([3, 4, 5, 6].includes(colIdx)) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = colIdx === 3 ? '0' : '0.0';
-            } else if (colIdx === 9) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = '$#,##0.00';
-            }
-          } else if (isCharc) {
-            if ([3, 4, 5, 6].includes(colIdx)) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = colIdx === 3 ? '0' : '0.0';
-            } else if (colIdx === 8) {
-              cell.value = { formula: `SUM(${colLetter}${startRow}:${colLetter}${endRow})` };
-              cell.numFmt = '$#,##0.00';
-            }
-          }
-        }
+      if (deptKey === 'produce') {
+        putTotal(5, S(5), '0');
+        putTotal(6, S(6), '0.00');
+        putTotal(10, S(10), '0.00');
+        putTotal(11, S(11), '+0.00;-0.00;0.00');
+        putTotal(13, S(13), '$#,##0.00');
+        putTotal(14, `IF(J${totRowIdx}>0,M${totRowIdx}/J${totRowIdx},0)`, '$#,##0.00');
+      } else if (deptKey === 'meat_beef') {
+        putTotal(4, S(4), '0');
+        putTotal(5, S(5), '0.00');
+        putTotal(6, S(6), '0.00');
+        putTotal(7, S(7), '0.00');
+        putTotal(8, S(8), '0');
+        putTotal(9, S(9), '$#,##0.00');
+        putTotal(10, S(10), '$#,##0.00');
+        putTotal(11, `IF(G${totRowIdx}>0,J${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
+      } else if (deptKey === 'meat_pork') {
+        putTotal(4, S(4), '0');
+        putTotal(5, S(5), '0.00');
+        putTotal(6, S(6), '0.00');
+        putTotal(7, S(7), '0.00');
+        putTotal(8, `IF(G${totRowIdx}>0,J${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
+        putTotal(10, S(10), '$#,##0.00');
+      } else if (deptKey === 'charcuteria') {
+        putTotal(4, S(4), '0');
+        putTotal(5, S(5), '0.00');
+        putTotal(6, S(6), '0.00');
+        putTotal(7, S(7), '0.00');
+        putTotal(9, S(9), '$#,##0.00');
+        putTotal(10, `IF(G${totRowIdx}>0,I${totRowIdx}/G${totRowIdx},0)`, '$#,##0.00');
       }
 
-      ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 5 }];
+      /* keep KPI card band above frozen header row visible-looking: freeze after header */
+      ws.views = [{ state: 'frozen', xSplit: 3, ySplit: 7 }];
     }
 
     async function exportExcelWorkbook(deptFilter = null, records = null) {
@@ -3150,7 +3229,7 @@
       const deptOrder = ['produce', 'meat_beef', 'meat_pork', 'meat_chicken', 'charcuteria'];
       const targetDepts = deptFilter ? [deptFilter] : deptOrder;
       const wb = new ExcelJS.Workbook();
-      wb.creator = 'Receiving App';
+      wb.creator = 'Pesos 收货称重';
       wb.created = new Date();
 
       const srcRecords = Array.isArray(records) ? records : state.records;
@@ -3169,10 +3248,11 @@
       }
 
       const buffer = await wb.xlsx.writeBuffer();
+      const isEs = state.lang === 'es';
       const todayStr = new Date().toISOString().slice(0, 10);
-      const fileName = deptFilter
-        ? `${DEPT_EXCEL_THEMES[deptFilter].sheetName}_收货比对_${todayStr}.xlsx`
-        : `各部门独立收货比对报表_${todayStr}.xlsx`;
+      const baseName = isEs ? 'Reporte_Recepcion' : '收货报表';
+      const deptSuffix = deptFilter ? `_${DEPT_EXCEL_THEMES[deptFilter].sheetName[isEs ? 'es' : 'zh']}` : '';
+      const fileName = `${baseName}${deptSuffix}_${todayStr}.xlsx`;
 
       const blob = new Blob([buffer], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -3200,6 +3280,7 @@
       showToast(t('toastExcelReady'), 'success');
     }
 
+
     /*****************************************************************************
      * 9. INITIALIZATION & GLOBAL EVENT LISTENERS
      ***************************************************************************/
@@ -3220,6 +3301,7 @@
 
       /* Department capsule bar only on the weigh page */
       document.getElementById('dept-capsule-bar').classList.toggle('hidden', tabName !== 'weigh');
+      closeMeatPopover();
 
       /* Reserve space above the fixed dock: weigh page (capsule bar + tab bar) vs others */
       const pad = tabName === 'weigh'
@@ -3646,8 +3728,37 @@
       document.getElementById('dept-capsule-scroll').addEventListener('click', e => {
         const btn = e.target.closest('.dept-capsule');
         if (!btn) return;
+        if (btn.dataset.deptkey === 'meat') {
+          toggleMeatPopover();
+          return;
+        }
+        closeMeatPopover();
         setDeptByKey(btn.dataset.deptkey);
         btn.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+      });
+
+      document.querySelectorAll('.meat-pop-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          setDeptByKey('meat_' + btn.dataset.sub);
+          closeMeatPopover();
+          const cap = document.querySelector('.dept-capsule[data-deptkey="meat"]');
+          if (cap) cap.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+        });
+      });
+
+      document.addEventListener('click', e => {
+        const pop = document.getElementById('meat-popover');
+        if (!pop || pop.classList.contains('hidden')) return;
+        if (e.target.closest('#meat-popover')) return;
+        if (e.target.closest('.dept-capsule[data-deptkey="meat"]')) return;
+        closeMeatPopover();
+      });
+
+      document.getElementById('dict-toggle-btn').addEventListener('click', () => {
+        const list = document.getElementById('dict-items-list');
+        const open = list.classList.toggle('hidden') === false;
+        document.getElementById('dict-card-sub').classList.toggle('hidden', !open);
+        document.getElementById('ico-dict-chevron').classList.toggle('rotate-180', open);
       });
 
       const supInp = document.getElementById('inp-supplier');
