@@ -21,6 +21,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
+    html, body {
+      overscroll-behavior-y: none;
+    }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
       background-color: #FFFFFF;
@@ -128,7 +131,7 @@
         <div class="flex items-center justify-between gap-2">
           <label id="lbl-item" for="inp-item-name" class="text-xs font-bold text-slate-600">商品名称 (点选或输入新品)</label>
           <button id="btn-temp-rule" type="button"
-            class="flex items-center gap-1 h-12 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 rounded-xl transition shrink-0">
+            class="flex items-center gap-1 h-12 text-xs font-extrabold text-white bg-[#1F2937] hover:bg-[#111827] active:scale-95 px-3 rounded-xl shadow-xs transition shrink-0">
             <span id="ico-rule-gear" class="w-3.5 h-3.5"></span>
             <span id="lbl-btn-rule">切换称重模板</span>
           </button>
@@ -142,7 +145,7 @@
               class="w-full h-12 pl-10 pr-3.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm font-bold outline-none transition" />
           </div>
           <button id="btn-clear-item" type="button"
-            class="px-3.5 h-12 rounded-xl border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs shrink-0 flex items-center gap-1">
+            class="px-3.5 h-12 rounded-xl bg-[#374151] hover:bg-[#1F2937] active:scale-95 text-white font-bold text-xs shrink-0 flex items-center gap-1 transition">
             <span id="ico-reset-item" class="w-3.5 h-3.5"></span>
             <span id="lbl-btn-clear">清空</span>
           </button>
@@ -194,7 +197,7 @@
         </div>
 
         <button id="btn-save-entry" type="button"
-          class="w-full py-3.5 rounded-xl bg-[#16A34A] hover:bg-[#15803D] active:scale-[0.99] text-white font-extrabold text-base shadow-sm transition flex items-center justify-center gap-2">
+          class="w-full py-3.5 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-[0.99] text-white font-extrabold text-base shadow-md transition flex items-center justify-center gap-2">
           <span id="ico-save-entry" class="w-5 h-5"></span>
           <span id="btn-save-entry-lbl">保存并加入本车核对</span>
         </button>
@@ -268,7 +271,7 @@
           <span id="btn-copy-wa-lbl">复制 WhatsApp 摘要</span>
         </button>
         <button id="btn-export-bill-xlsx" type="button"
-          class="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs px-3 flex items-center justify-center gap-1.5 shadow-sm transition">
+          class="h-12 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-95 text-white font-bold text-xs px-3 flex items-center justify-center gap-1.5 shadow-sm transition">
           <span id="ico-xlsx-wa" class="w-4 h-4 shrink-0"></span>
           <span id="btn-export-wa-lbl">生成Excel发WhatsApp</span>
         </button>
@@ -280,7 +283,7 @@
           <span id="btn-purge-bill-lbl">清空(不进历史)</span>
         </button>
         <button id="btn-archive-bill" type="button"
-          class="flex items-center gap-1.5 h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-sm transition">
+          class="flex items-center gap-1.5 h-12 px-4 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-95 text-white font-bold text-xs shadow-sm transition">
           <span id="ico-archive-bill" class="w-4 h-4"></span>
           <span id="btn-archive-bill-lbl">完成并归档本车</span>
         </button>
@@ -344,7 +347,7 @@
               <option value="charcuteria">熟食部</option>
             </select>
             <button id="btn-export-single-dept" type="button"
-              class="h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
+              class="h-12 px-4 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
               <span id="ico-exp-single" class="w-4 h-4"></span>
               <span id="lbl-exp-single">导出该部门</span>
             </button>
@@ -421,7 +424,7 @@
 
         <div class="grid grid-cols-2 gap-2.5">
           <button id="btn-export-backup" type="button"
-            class="h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+            class="h-12 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-95 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
             <span id="ico-export-backup" class="w-4 h-4"></span>
             <span id="btn-export-backup-lbl">一键导出备份</span>
           </button>
@@ -446,7 +449,7 @@
           </div>
         </div>
         <button id="btn-install-pwa" type="button"
-          class="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow transition">
+          class="w-full h-12 rounded-xl bg-[#15803D] hover:bg-[#166534] active:scale-[0.99] text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow transition">
           <span id="ico-install" class="w-4 h-4"></span>
           <span id="btn-install-lbl">安装到桌面</span>
         </button>
@@ -1242,7 +1245,8 @@
       LEGACY_SUPPLIERS: 'rcv_v4_suppliers',
       HISTORY: 'pesos_history_v1',
       LANG: 'rcv_v4_lang',
-      BACKUP_AT: 'pesos_last_backup_at'
+      BACKUP_AT: 'pesos_last_backup_at',
+      DRAFT: 'pesos_draft_v1'
     };
 
     const DEFAULT_ITEMS = [
@@ -1364,6 +1368,78 @@
       localStorage.setItem(STORAGE_KEYS.SUPPLIERS, JSON.stringify(state.suppliers));
       localStorage.setItem(STORAGE_KEYS.LANG, state.lang);
     }
+
+    /* Real-time draft persistence: prevents accidental refresh or app switch from losing inputs */
+    function saveDraft() {
+      try {
+        const draft = {
+          dept: state.dept,
+          subDept: state.subDept,
+          supplier: state.supplier,
+          selectedItemId: state.selectedItemId,
+          itemNameInput: state.itemNameInput,
+          template: state.template,
+          form: state.form
+        };
+        localStorage.setItem(STORAGE_KEYS.DRAFT, JSON.stringify(draft));
+      } catch { /* ignore quota errors */ }
+    }
+
+    function clearDraft() {
+      try { localStorage.removeItem(STORAGE_KEYS.DRAFT); } catch { /* ignore */ }
+    }
+
+    function restoreDraft() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEYS.DRAFT);
+        if (!raw) return;
+        const d = JSON.parse(raw);
+        if (!d || typeof d !== 'object') return;
+        if (['produce', 'meat', 'charcuteria'].includes(d.dept)) state.dept = d.dept;
+        if (['beef', 'pork', 'chicken'].includes(d.subDept)) state.subDept = d.subDept;
+        if (typeof d.supplier === 'string') state.supplier = d.supplier;
+        if (typeof d.itemNameInput === 'string') state.itemNameInput = d.itemNameInput;
+        state.selectedItemId = d.selectedItemId || null;
+        if (['A', 'B', 'C', 'D'].includes(d.template)) state.template = d.template;
+        if (d.form && typeof d.form === 'object') {
+          const blank = createBlankFormState(state.template, d.form.priceMode || 'kg');
+          state.form = { ...blank, ...d.form };
+          if (!Array.isArray(state.form.grossScales) || !state.form.grossScales.length) state.form.grossScales = [''];
+          if (!Array.isArray(state.form.tareRows) || !state.form.tareRows.length) state.form.tareRows = [{ count: '', unitWeight: '' }];
+          if (!Array.isArray(state.form.cows) || !state.form.cows.length) state.form.cows = [{ halfA: '', halfB: '', unitPrice: '' }];
+          if (!Array.isArray(state.form.rounds) || !state.form.rounds.length) state.form.rounds = [''];
+          if (!Array.isArray(state.form.charcScales) || !state.form.charcScales.length) state.form.charcScales = [''];
+          if (!Array.isArray(state.form.charcTareRows) || !state.form.charcTareRows.length) state.form.charcTareRows = [{ count: '', unitWeight: '' }];
+        }
+        const supEl = document.getElementById('inp-supplier');
+        if (supEl) supEl.value = state.supplier;
+        const itemEl = document.getElementById('inp-item-name');
+        if (itemEl) itemEl.value = state.itemNameInput;
+      } catch { /* ignore malformed draft */ }
+    }
+
+    function setupPullToRefreshGuard() {
+      let startY = 0;
+      document.addEventListener('touchstart', e => {
+        if (e.touches && e.touches.length === 1) {
+          startY = e.touches[0].clientY;
+        }
+      }, { passive: true });
+      document.addEventListener('touchmove', e => {
+        if (!e.touches || e.touches.length !== 1) return;
+        const currY = e.touches[0].clientY;
+        const pullingDown = currY > startY;
+        const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        if (pullingDown && scrollTop <= 0) {
+          const inScrollable = e.target && e.target.closest && e.target.closest('.overflow-y-auto');
+          if (!inScrollable || inScrollable.scrollTop <= 0) {
+            e.preventDefault();
+          }
+        }
+      }, { passive: false });
+    }
+
+
 
     /***************************************************************************
      * 4. HELPER & CALCULATION UTILITIES
@@ -1705,7 +1781,7 @@
         bar.classList.remove('hidden');
         bar.innerHTML = top.map(s => `
           <button type="button" data-sup="${escapeHtml(s.name)}"
-            class="sup-chip shrink-0 min-h-[48px] px-3 rounded-full text-[11px] font-bold border transition flex items-center gap-1 ${state.supplier === s.name ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
+            class="sup-chip shrink-0 min-h-[48px] px-3 rounded-full text-[11px] font-bold border transition flex items-center gap-1 ${state.supplier === s.name ? 'bg-[#15803D] text-white border-[#166534]' : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'}">
             ${escapeHtml(s.name)}
             <span class="text-[9px] font-extrabold opacity-70 tabular-nums">×${s.count || 1}</span>
           </button>
@@ -1822,7 +1898,7 @@
         const active = state.selectedItemId === it.id;
         return `
           <button type="button" data-item-id="${it.id}"
-            class="quick-item-btn h-12 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${active ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200'}">
+            class="quick-item-btn h-12 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1.5 ${active ? 'bg-[#15803D] text-white border-[#166534] shadow-sm' : 'bg-slate-100 hover:bg-slate-200/80 text-slate-800 border-slate-200'}">
             <span>${escapeHtml(getItemDisplayName(it))}</span>
             <span class="text-[10px] opacity-75">[${it.template}]</span>
           </button>
@@ -1836,22 +1912,22 @@
         key: 'produce',
         labelKey: 'deptProduce',
         icon: 'dept_produce',
-        idleCls: 'bg-[#F0FDF4] text-[#111111] border-[#86EFAC] hover:bg-[#DCFCE7]',
-        activeCls: 'bg-[#DCFCE7] text-[#111111] border-2 border-[#16A34A] ring-2 ring-[#16A34A]/30 shadow-sm'
+        idleCls: 'bg-[#15803D] text-white border-[#166534] opacity-85 hover:opacity-100',
+        activeCls: 'bg-[#166534] text-white border-2 border-[#052E16] ring-2 ring-[#15803D]/45 shadow-md'
       },
       {
         key: 'meat',
         labelKey: 'deptMeat',
         icon: 'dept_meat',
-        idleCls: 'bg-[#FEF2F2] text-[#111111] border-[#FCA5A5] hover:bg-[#FEE2E2]',
-        activeCls: 'bg-[#FEE2E2] text-[#111111] border-2 border-[#DC2626] ring-2 ring-[#DC2626]/30 shadow-sm'
+        idleCls: 'bg-[#B91C1C] text-white border-[#991B1B] opacity-85 hover:opacity-100',
+        activeCls: 'bg-[#991B1B] text-white border-2 border-[#450A0A] ring-2 ring-[#B91C1C]/45 shadow-md'
       },
       {
         key: 'charcuteria',
         labelKey: 'deptCharcuteria',
         icon: 'dept_charcuteria',
-        idleCls: 'bg-[#EFF6FF] text-[#111111] border-[#93C5FD] hover:bg-[#DBEAFE]',
-        activeCls: 'bg-[#DBEAFE] text-[#111111] border-2 border-[#2563EB] ring-2 ring-[#2563EB]/30 shadow-sm'
+        idleCls: 'bg-[#1D4ED8] text-white border-[#1E40AF] opacity-85 hover:opacity-100',
+        activeCls: 'bg-[#1E40AF] text-white border-2 border-[#172554] ring-2 ring-[#1D4ED8]/45 shadow-md'
       }
     ];
 
@@ -1883,9 +1959,9 @@
       const scroll = document.getElementById('dept-capsule-scroll');
       if (!scroll) return;
       const meatActiveBySub = {
-        beef: 'bg-[#FEE2E2] text-[#111111] border-2 border-[#DC2626] ring-2 ring-[#DC2626]/30 shadow-sm',
-        pork: 'bg-[#FFEDD5] text-[#111111] border-2 border-[#EA580C] ring-2 ring-[#EA580C]/30 shadow-sm',
-        chicken: 'bg-[#FCE7F3] text-[#111111] border-2 border-[#EC4899] ring-2 ring-[#EC4899]/30 shadow-sm'
+        beef: 'bg-[#991B1B] text-white border-2 border-[#450A0A] ring-2 ring-[#B91C1C]/45 shadow-md',
+        pork: 'bg-[#9A3412] text-white border-2 border-[#431407] ring-2 ring-[#C2410C]/45 shadow-md',
+        chicken: 'bg-[#9D174D] text-white border-2 border-[#500724] ring-2 ring-[#BE185D]/45 shadow-md'
       };
       scroll.innerHTML = DEPT_CAPSULES.map(c => {
         const active = c.key === 'meat' ? state.dept === 'meat' : c.key === state.dept;
@@ -1922,14 +1998,14 @@
 
     function renderMeatPopover() {
       const activeColors = {
-        beef: 'border-2 border-[#DC2626] bg-[#FEE2E2] text-[#111111] ring-2 ring-[#DC2626]/30 shadow-sm',
-        pork: 'border-2 border-[#EA580C] bg-[#FFEDD5] text-[#111111] ring-2 ring-[#EA580C]/30 shadow-sm',
-        chicken: 'border-2 border-[#EC4899] bg-[#FCE7F3] text-[#111111] ring-2 ring-[#EC4899]/30 shadow-sm'
+        beef: 'border-2 border-[#450A0A] bg-[#991B1B] text-white ring-2 ring-[#B91C1C]/45 shadow-md',
+        pork: 'border-2 border-[#431407] bg-[#9A3412] text-white ring-2 ring-[#C2410C]/45 shadow-md',
+        chicken: 'border-2 border-[#500724] bg-[#9D174D] text-white ring-2 ring-[#BE185D]/45 shadow-md'
       };
       const idleColors = {
-        beef: 'border border-[#FCA5A5] bg-[#FEF2F2] text-[#111111] hover:bg-[#FEE2E2]',
-        pork: 'border border-[#FDBA74] bg-[#FFF7ED] text-[#111111] hover:bg-[#FFEDD5]',
-        chicken: 'border border-[#F9A8D4] bg-[#FDF2F8] text-[#111111] hover:bg-[#FCE7F3]'
+        beef: 'border border-[#991B1B] bg-[#B91C1C] text-white opacity-90 hover:opacity-100',
+        pork: 'border border-[#9A3412] bg-[#C2410C] text-white opacity-90 hover:opacity-100',
+        chicken: 'border border-[#9D174D] bg-[#BE185D] text-white opacity-90 hover:opacity-100'
       };
       document.querySelectorAll('.meat-pop-btn').forEach(btn => {
         const s = btn.dataset.sub;
@@ -1995,11 +2071,11 @@
         container.innerHTML = `
           <section class="bg-white rounded-[14px] p-3.5 shadow-sm border border-slate-200/80 space-y-3">
             <div class="grid grid-cols-2 gap-1.5 bg-slate-100 p-1 rounded-xl">
-              <button type="button" data-amode="crate" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+              <button type="button" data-amode="crate" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${isCrate ? 'bg-[#15803D] text-white shadow-sm' : 'text-[#111111]'}">
                 <span class="w-4 h-4">${SVG_ICONS.crate}</span>
                 <span>${t('modeCrate')}</span>
               </button>
-              <button type="button" data-amode="kg" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isCrate ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600'}">
+              <button type="button" data-amode="kg" class="amode-btn h-12 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 ${!isCrate ? 'bg-[#15803D] text-white shadow-sm' : 'text-[#111111]'}">
                 <span class="w-4 h-4">${SVG_ICONS.scale}</span>
                 <span>${t('modeKg')}</span>
               </button>
@@ -2478,6 +2554,7 @@
         const avgEl = document.getElementById('c-avg-head');
         if (avgEl) avgEl.textContent = `${fmtKg(calc.avgHeadWeight)} kg`;
       }
+      saveDraft();
     }
 
     function bindFormEvents() {
@@ -2661,6 +2738,7 @@
       state.records.push(record);
       saveStorage();
 
+      clearDraft();
       state.selectedItemId = null;
       state.itemNameInput = '';
       document.getElementById('inp-item-name').value = '';
@@ -2795,11 +2873,11 @@
 
     /* Shared department badge styles (history list & dictionary rows) */
     const DEPT_BADGES = {
-      produce: { zh: '蔬菜水果', es: 'Verduras', bg: 'bg-[#DCFCE7] text-[#111111] border-[#16A34A]' },
-      meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-[#FEE2E2] text-[#111111] border-[#DC2626]' },
-      meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-[#FFEDD5] text-[#111111] border-[#EA580C]' },
-      meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-[#FCE7F3] text-[#111111] border-[#EC4899]' },
-      charcuteria: { zh: '熟食部', es: 'Charcut.', bg: 'bg-[#DBEAFE] text-[#111111] border-[#2563EB]' }
+      produce: { zh: '蔬菜水果', es: 'Verduras', bg: 'bg-[#15803D] text-white border-[#166534]' },
+      meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-[#B91C1C] text-white border-[#991B1B]' },
+      meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-[#C2410C] text-white border-[#9A3412]' },
+      meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-[#BE185D] text-white border-[#9D174D]' },
+      charcuteria: { zh: '熟食部', es: 'Charcut.', bg: 'bg-[#1D4ED8] text-white border-[#1E40AF]' }
     };
 
     function renderSettingsView() {
@@ -3908,6 +3986,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       mountStaticIcons();
       loadStorage();
+      restoreDraft();
       applyStaticTranslations();
       renderDeptCapsules();
       renderSuppliers();
@@ -3979,6 +4058,7 @@
         state.supplier = e.target.value;
         document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
         renderSupplierSuggest();
+        saveDraft();
       });
       supInp.addEventListener('focus', () => renderSupplierSuggest());
       supInp.addEventListener('blur', () => setTimeout(() => suggestBox.classList.add('hidden'), 180));
@@ -3987,6 +4067,7 @@
         supInp.value = '';
         renderSupplierSuggest();
         document.getElementById('btn-clear-supplier').classList.add('hidden');
+        saveDraft();
       });
       document.getElementById('recent-suppliers-bar').addEventListener('click', e => {
         const chip = e.target.closest('.sup-chip');
@@ -3995,6 +4076,7 @@
         supInp.value = state.supplier;
         renderSupplierSuggest();
         document.getElementById('btn-clear-supplier').classList.toggle('hidden', !state.supplier);
+        saveDraft();
       });
       suggestBox.addEventListener('pointerdown', e => {
         const btn = e.target.closest('.sup-suggest');
@@ -4004,6 +4086,7 @@
         supInp.value = state.supplier;
         renderSupplierSuggest();
         document.getElementById('btn-clear-supplier').classList.remove('hidden');
+        saveDraft();
       });
 
       const itemInp = document.getElementById('inp-item-name');
@@ -4011,12 +4094,14 @@
         state.itemNameInput = e.target.value;
         state.selectedItemId = null;
         renderQuickItems();
+        saveDraft();
       });
       document.getElementById('btn-clear-item').addEventListener('click', () => {
         state.itemNameInput = '';
         state.selectedItemId = null;
         itemInp.value = '';
         renderQuickItems();
+        saveDraft();
       });
       document.getElementById('quick-items-grid').addEventListener('click', e => {
         const btn = e.target.closest('.quick-item-btn');
@@ -4177,6 +4262,7 @@
       });
 
       setupKeyboardDockHandling();
+      setupPullToRefreshGuard();
       registerServiceWorker();
     });
   </script>
