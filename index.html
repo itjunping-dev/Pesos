@@ -58,6 +58,10 @@
       -webkit-backdrop-filter: blur(10px);
       border-top: 1px solid rgba(15, 23, 42, 0.07);
     }
+
+    /* Anti-overflow for short mobile labels (375px narrow screens) */
+    .dock-tab span,
+    .dept-capsule span { white-space: nowrap; }
   </style>
 </head>
 <body class="min-h-screen flex justify-center">
@@ -293,7 +297,7 @@
             <option value="meat_beef">牛肉 / Res</option>
             <option value="meat_pork">猪肉 / Cerdo</option>
             <option value="meat_chicken">鸡肉 / Pollo</option>
-            <option value="charcuteria">Charcutería</option>
+            <option value="charcuteria">Charcut.</option>
           </select>
           <div class="relative flex-1 min-w-0">
             <span id="ico-his-search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></span>
@@ -325,11 +329,11 @@
           <label id="lbl-exp-dept" for="sel-export-dept" class="block text-xs font-bold text-slate-700">1. 单独导出指定部门报表 (单表)</label>
           <div class="flex gap-2">
             <select id="sel-export-dept" class="flex-1 min-w-0 h-12 px-3 rounded-xl border border-slate-300 bg-white text-xs font-bold text-slate-800 outline-none">
-              <option value="produce">蔬菜水果部 (Frutas y Verduras)</option>
-              <option value="meat_beef">牛肉部 (Carnicería - Res)</option>
-              <option value="meat_pork">猪肉部 (Carnicería - Cerdo)</option>
-              <option value="meat_chicken">鸡肉部 (Carnicería - Pollo)</option>
-              <option value="charcuteria">Charcutería部 (Charcutería)</option>
+              <option value="produce">蔬菜水果部 (Verduras)</option>
+              <option value="meat_beef">牛肉部 (Res)</option>
+              <option value="meat_pork">猪肉部 (Cerdo)</option>
+              <option value="meat_chicken">鸡肉部 (Pollo)</option>
+              <option value="charcuteria">Charcutería部 (Charcut.)</option>
             </select>
             <button id="btn-export-single-dept" type="button"
               class="h-12 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold text-xs shrink-0 shadow-sm transition flex items-center gap-1.5">
@@ -569,7 +573,7 @@
           <button type="button" data-tab="history" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-history" class="w-5 h-5"></span>
             <span id="tab-lbl-history">历史</span>
-            <span class="text-[9px] font-semibold opacity-75 leading-none">Historial</span>
+            <span class="text-[9px] font-semibold opacity-75 leading-none">Hist.</span>
           </button>
           <button type="button" data-tab="settings" class="dock-tab text-slate-400 flex flex-col items-center justify-center gap-0.5 min-h-[56px] py-1.5 text-[11px] font-bold">
             <span id="ico-tab-settings" class="w-5 h-5"></span>
@@ -1032,96 +1036,96 @@
         hdrSub: 'Sin código · Tara y control en vivo',
         tabWeigh: 'Pesar',
         tabBill: 'Recibo',
-        tabHistory: 'Historial',
+        tabHistory: 'Hist.',
         tabSettings: 'Ajustes',
-        lblSupplier: 'Proveedor (Opcional)',
-        phSupplier: 'Nombre del proveedor...',
+        lblSupplier: 'Proveedor (opc.)',
+        phSupplier: 'Proveedor...',
         lblDept: 'Departamento',
-        deptProduce: 'Frutas/Verduras',
-        deptMeat: 'Carnicería',
-        deptCharcuteria: 'Charcutería',
-        subBeef: 'Res (牛肉)',
-        subPork: 'Cerdo (猪肉)',
-        subChicken: 'Pollo (鸡肉)',
-        lblItem: 'Producto (Tocar o escribir nuevo)',
+        deptProduce: 'Verduras',
+        deptMeat: 'Carnes',
+        deptCharcuteria: 'Charcut.',
+        subBeef: 'Res',
+        subPork: 'Cerdo',
+        subChicken: 'Pollo',
+        lblItem: 'Producto (toque o escriba)',
         btnTempRule: 'Cambiar Plantilla',
-        phItemName: 'Escribir producto (se guarda al pesar)...',
+        phItemName: 'Producto (se guarda al pesar)...',
         btnClearItem: 'Limpiar',
         lblRuleHint: 'Elija la plantilla de cálculo para este producto:',
-        tplNameA: 'Plantilla A · Por Cesta/Caja',
-        tplDescA: 'Varias pesadas + Tara mixta + Reposición',
-        tplNameB: 'Plantilla B · Por Mitades',
-        tplDescB: 'Mitad A + Mitad B + Vísceras opcional',
-        tplNameC: 'Plantilla C · Varias Tandas',
-        tplDescC: 'Suma de pesadas en báscula de piso',
-        tplNameD: 'Plantilla D · Peso Neto Directo',
+        tplNameA: 'Plantilla A · x Cesta',
+        tplDescA: 'Varias pesadas + Tara mixta + Reponer',
+        tplNameB: 'Plantilla B · Mitades',
+        tplDescB: 'Mitad A + Mitad B + Vísceras opc.',
+        tplNameC: 'Plantilla C · Tandas',
+        tplDescC: 'Suma de varias pesadas',
+        tplNameD: 'Plantilla D · Neto Directo',
         tplDescD: 'Tarado por defecto · Cesta opcional',
-        resLblNet: 'Peso Neto Final',
-        resLblAmount: 'Total a Facturar',
-        resRealCost: 'Costo real',
-        btnSaveEntry: 'Guardar y Agregar a Cuenta',
-        modeCrate: 'Por Cesta ($/Cesta)',
-        modeKg: 'Por Kilo ($/kg)',
-        lblQuotedCrates: 'Cant. Cestas',
-        lblCratePrice: 'Precio/Cesta ($)',
-        lblStdWeight: 'Peso Estándar/Cesta',
-        lblExpectedNet: 'Peso Esperado',
-        lblNominalUnit: 'Precio Nominal',
-        lblKgPrice: 'Precio por Kilo ($/kg)',
-        lblGrossSec: 'Peso Bruto (Suma de pesadas)',
+        resLblNet: 'Neto',
+        resLblAmount: 'Total',
+        resRealCost: 'Costo/kg',
+        btnSaveEntry: 'Guardar en Recibo',
+        modeCrate: 'x Cesta',
+        modeKg: 'x Kg',
+        lblQuotedCrates: 'Cestas',
+        lblCratePrice: 'Precio/Cesta',
+        lblStdWeight: 'Meta kg',
+        lblExpectedNet: 'Meta kg',
+        lblNominalUnit: 'Precio/kg',
+        lblKgPrice: 'Precio/kg',
+        lblGrossSec: 'Bruto (Suma pesadas)',
         btnAddScale: 'Otra Pesada',
         scaleIdx: 'Pesada {n}',
-        lblTareSec: 'Tara de Cestas (Permite cestas mixtas)',
-        btnAddTare: 'Otro Tipo de Cesta',
+        lblTareSec: 'Tara de Cestas (mixtas)',
+        btnAddTare: 'Otra Cesta',
         crateCountPh: 'Cant.',
-        crateUnitPh: 'Tara c/u kg',
-        crateMismatch: '⚠️ Total cestas tara ({t}) ≠ cestas cotizadas ({q})',
-        statusOkFull: '✓ Peso completo ({diff} kg) · Precio fijo por cesta',
-        statusShort: '⚠️ Faltan {short} kg, proveedor debe reponer',
-        lblReplenish: 'Peso Reposición (kg)',
-        lblShortAction: 'Aún faltan {rem} kg, elegir cobro:',
-        optPayFull: 'Pagar cesta completa',
-        optDeductShort: 'Descontar faltante',
-        lblBeefNote: 'Báscula ya tarada · Ingresar por pares (Mitad A + B)',
+        crateUnitPh: 'Tara kg',
+        crateMismatch: '⚠️ Cestas tara ({t}) ≠ cotizadas ({q})',
+        statusOkFull: '✓ Completo ({diff} kg) · Precio Cesta fijo',
+        statusShort: '⚠️ Faltante {short} kg · proveedor repone',
+        lblReplenish: 'Reponer (kg)',
+        lblShortAction: 'Faltan {rem} kg · cobro:',
+        optPayFull: 'Pagar Cesta',
+        optDeductShort: 'Descontar',
+        lblBeefNote: 'Báscula tarada · Por pares (Mitad A + B)',
         cowTitle: 'Res #{n}',
         lblHalfA: 'Mitad A (kg)',
         lblHalfB: 'Mitad B (kg)',
         lblCowPrice: 'Precio ($/kg)',
         lblCowSum: 'Peso Res',
         errHalfMissing: '⚠️ Falta la otra mitad en Res #{n}',
-        btnAddCow: 'Agregar Otra Res',
-        btnToggleOffal: 'Agregar Vísceras (Por juego)',
-        lblOffalSec: 'Vísceras (Por juego)',
-        lblOffalSets: 'Cant. Juegos',
-        lblOffalPrice: 'Precio/Juego ($)',
+        btnAddCow: 'Otra Res',
+        btnToggleOffal: 'Vísceras (x Juego)',
+        lblOffalSec: 'Vísceras (x Juego)',
+        lblOffalSets: 'Juegos',
+        lblOffalPrice: 'Precio/Juego',
         lblPorkNote: 'Báscula de piso · Acumulación por tandas',
         roundIdx: 'Tanda {n}',
         btnAddRound: 'Otra Tanda',
         btnTogglePorkTare: 'Tara temporal (Carro/Tina)',
-        lblPorkTare: 'Peso Tara Carro/Tina (kg)',
+        lblPorkTare: 'Tara Carro/Tina (kg)',
         btnTogglePorkHead: 'Registrar Cabezas',
-        lblPorkHead: 'Total Cabezas (Promedio)',
+        lblPorkHead: 'Cabezas (Promedio)',
         lblAvgWeight: 'Prom./Cabeza',
-        lblCharcNote: 'Directo a báscula (ya tarada) · Cesta opcional',
-        lblCharcPieces: 'Piezas / Barras (Opcional)',
+        lblCharcNote: 'Directo a báscula · Cesta opcional',
+        lblCharcPieces: 'Piezas/Barras (opc.)',
         btnToggleCharcTare: 'Pesar con Cesta (Tara)',
-        billCtrlLang: 'Idioma de cuenta:',
+        billCtrlLang: 'Idioma del Recibo:',
         billHideCostTitle: 'Ocultar costo interno real',
         billHideCostSub: 'Activar al mostrar pantalla al proveedor',
         rcptHeader: 'Control de Recepción',
         rcptSupLbl: 'Proveedor',
         rcptItemCount: '{n} ítems',
-        rcptTotNet: 'Peso Neto Total',
-        rcptTotAmt: 'Total a Facturar',
+        rcptTotNet: 'Neto Total',
+        rcptTotAmt: 'Total',
         btnCopyWa: 'Copiar Resumen WhatsApp',
         btnExportWa: 'Excel para WhatsApp',
         btnClearBill: 'Vaciar cuenta',
-        emptyBill: 'No hay productos en la cuenta aún',
-        expCardTitle: 'Reportes Excel por Departamento (.xlsx)',
-        expCardSub: 'Hojas separadas por departamento con escalas de color y fórmulas',
+        emptyBill: 'Recibo vacío · Agregue en Pesar',
+        expCardTitle: 'Excel por Departamento (.xlsx)',
+        expCardSub: 'Hojas por departamento con escalas de color y fórmulas',
         lblExpDept: '1. Exportar un solo departamento',
         btnExportSingle: 'Exportar Dept.',
-        btnExportAll: 'Exportar Todos los Departamentos (.xlsx)',
+        btnExportAll: 'Exportar todos los Dept. (.xlsx)',
         lblDemoHint: '¿Probar colores y formato de Excel?',
         btnLoadDemo: 'Cargar Datos Demo',
         dictCardTitle: 'Productos Guardados',
@@ -1140,14 +1144,14 @@
         toastNeedName: 'Ingrese o seleccione el nombre del producto',
         toastNeedWeight: 'Ingrese un peso válido mayor a 0',
         toastHalfMissing: 'Bloqueado: Complete ambas mitades de la res',
-        toastAdded: 'Agregado a la cuenta',
-        toastNewItemSaved: 'Agregado y guardado en productos rápidos',
+        toastAdded: 'Agregado al Recibo',
+        toastNewItemSaved: 'Agregado al Recibo y guardado',
         toastCopied: 'Resumen copiado para WhatsApp',
         toastNoDataDept: 'No hay registros en este departamento',
         toastNoDataAll: 'No hay registros para exportar',
         toastExcelReady: 'Archivo Excel generado',
         toastDemoLoaded: 'Datos de prueba cargados en los 5 departamentos',
-        presetNoCrate: 'Sin cesta',
+        presetNoCrate: 'Sin Cesta',
         presetHeavyCrate: 'Gruesa',
         presetLightCrate: 'Ligera',
         presetWoodBox: 'Madera',
@@ -1156,11 +1160,11 @@
         btnArchiveBill: 'Archivar y Cerrar',
         btnPurgeBill: 'Vaciar sin archivar',
         confirmPurgeBill: 'Se borrará sin guardar en el historial. ¿Continuar?',
-        toastArchived: 'Cuenta archivada en el historial',
-        toastBillCleared: 'Cuenta vaciada',
-        hisTitle: 'Historial de Recepción',
+        toastArchived: 'Recibo archivado en Hist.',
+        toastBillCleared: 'Recibo vaciado',
+        hisTitle: 'Hist. de Recepción',
         hisCount: '{n} registros',
-        hisTotNet: 'Peso total',
+        hisTotNet: 'Neto',
         hisTotAmt: 'Total',
         hisEmpty: 'Sin registros archivados aún',
         btnDelRec: 'Borrar',
@@ -1168,7 +1172,7 @@
         btnClearHistory: 'Borrar todo el historial',
         confirmClearHistory: '¿Borrar TODO el historial? No se puede deshacer.',
         toastHistoryCleared: 'Historial borrado',
-        expScopeHint: 'Fuente: registros archivados (la cuenta actual se exporta desde Recibo)',
+        expScopeHint: 'Fuente: registros archivados (el Recibo actual se exporta en la pestaña Recibo)',
         hisSearchPh: 'Buscar producto/proveedor...',
         supMgrTitle: 'Proveedores',
         supMgrSub: 'Se guardan al registrar pesajes. Renombrar o eliminar.',
@@ -1183,7 +1187,7 @@
         lblEditSup: 'Nombre del proveedor',
         backupTitle: 'Respaldo y Restauración',
         backupSub: 'Todo se guarda solo en este teléfono. Exporta antes de limpiar o cambiar de equipo.',
-        backupStatsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en cuenta',
+        backupStatsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en Recibo',
         backupLastPrefix: 'Último respaldo',
         backupNever: 'Nunca',
         backupSoonWarn: 'Más de 7 días sin respaldo',
@@ -1192,7 +1196,7 @@
         backupInvalid: 'Archivo de respaldo inválido o dañado. No se cambió nada.',
         backupModalTitle: 'Confirmar Restauración',
         backupDateLbl: 'Fecha del respaldo:',
-        backupCountsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en cuenta',
+        backupCountsTpl: '{items} productos · {suppliers} proveedores · {history} registros · {current} en Recibo',
         btnMergeRestore: 'Combinar (Recomendado)',
         btnReplaceRestore: 'Reemplazar Todo',
         btnCancel: 'Cancelar',
@@ -2262,7 +2266,7 @@
       const diffEl = document.getElementById('res-sub-diff');
       if (calc.tpl === 'A' && calc.priceMode === 'crate' && calc.expectedNet > 0 && calc.finalNet > 0) {
         const sign = calc.weightDiff >= 0 ? '+' : '';
-        diffEl.textContent = `${sign}${fmtKg(calc.weightDiff)} kg vs ${fmtKg(calc.expectedNet)} kg`;
+        diffEl.textContent = `${state.lang === 'es' ? 'Dif. ' : ''}${sign}${fmtKg(calc.weightDiff)} kg vs ${fmtKg(calc.expectedNet)} kg`;
         diffEl.className = calc.weightDiff >= 0
           ? 'text-[11px] text-emerald-400 font-bold tabular-nums mt-0.5'
           : 'text-[11px] text-rose-400 font-bold tabular-nums mt-0.5';
@@ -2591,16 +2595,16 @@
 
       if (c.tpl === 'A') {
         if (c.priceMode === 'crate') {
-          const crateTxt = langMode === 'es' ? `${c.quotedCrates} cestas × ${fmtMoney(c.cratePrice)}` : `${c.quotedCrates}筐 × ${fmtMoney(c.cratePrice)}`;
+          const crateTxt = langMode === 'es' ? `${c.quotedCrates} Cestas × ${fmtMoney(c.cratePrice)}` : `${c.quotedCrates}筐 × ${fmtMoney(c.cratePrice)}`;
           const netTxt = langMode === 'es' ? `Neto ${fmtKg(c.finalNet)}kg (Tara ${fmtKg(c.tareTotal)}kg)` : `实收 ${fmtKg(c.finalNet)}kg (扣筐 ${fmtKg(c.tareTotal)}kg)`;
           detail = `${crateTxt} · ${netTxt}`;
         } else {
           detail = `${fmtKg(c.finalNet)}kg × ${fmtMoney(c.kgPrice)}/kg`;
         }
       } else if (c.tpl === 'B') {
-        const headsTxt = langMode === 'es' ? `${c.validHeads} reses (${fmtKg(c.beefNet)}kg)` : `${c.validHeads}头牛 (${fmtKg(c.beefNet)}kg)`;
+        const headsTxt = langMode === 'es' ? `${c.validHeads} Res (${fmtKg(c.beefNet)}kg)` : `${c.validHeads}头牛 (${fmtKg(c.beefNet)}kg)`;
         const offalTxt = c.hasOffal && c.offalSets > 0
-          ? (langMode === 'es' ? ` + ${c.offalSets} jgo. vísceras` : ` + ${c.offalSets}套内脏`)
+          ? (langMode === 'es' ? ` + ${c.offalSets} Jgo. Vísceras` : ` + ${c.offalSets}套内脏`)
           : '';
         detail = headsTxt + offalTxt;
       } else if (c.tpl === 'C') {
@@ -2691,11 +2695,11 @@
 
     /* Shared department badge styles (history list & dictionary rows) */
     const DEPT_BADGES = {
-      produce: { zh: '蔬菜水果', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-      meat_beef: { zh: '牛肉', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
-      meat_pork: { zh: '猪肉', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
-      meat_chicken: { zh: '鸡肉', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
-      charcuteria: { zh: 'Charcutería', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+      produce: { zh: '蔬菜水果', es: 'Verduras', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+      meat_beef: { zh: '牛肉', es: 'Res', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
+      meat_pork: { zh: '猪肉', es: 'Cerdo', bg: 'bg-amber-50 text-amber-800 border-amber-200' },
+      meat_chicken: { zh: '鸡肉', es: 'Pollo', bg: 'bg-orange-50 text-orange-700 border-orange-200' },
+      charcuteria: { zh: 'Charcutería', es: 'Charcut.', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
     };
 
     function renderSettingsView() {
@@ -2710,7 +2714,7 @@
             <div class="min-w-0">
               <div class="text-xs font-extrabold text-slate-900 truncate">${escapeHtml(getItemDisplayName(it, 'bi'))}</div>
               <div class="flex items-center gap-1.5 mt-1">
-                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${b.zh}</span>
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${state.lang === 'es' ? b.es : b.zh}</span>
                 <span class="text-[10px] font-bold text-slate-500">${state.lang === 'es' ? 'Plantilla' : '模板'} ${it.template}</span>
               </div>
             </div>
@@ -3293,7 +3297,7 @@
           <div class="bg-white rounded-[14px] border border-slate-200/80 shadow-sm px-3.5 py-3 flex items-start justify-between gap-2">
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${b.zh}</span>
+                <span class="px-2 py-0.5 rounded border text-[10px] font-bold ${b.bg}">${state.lang === 'es' ? b.es : b.zh}</span>
                 <span class="text-[11px] text-slate-400 tabular-nums">${escapeHtml(rec.date || '')} ${escapeHtml(rec.time || '')}</span>
                 <span class="text-[11px] text-slate-500 truncate max-w-[150px]">${escapeHtml(rec.supplier || '—')}</span>
               </div>

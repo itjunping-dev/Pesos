@@ -1,7 +1,7 @@
 {
   "name": "无码收货称重",
   "short_name": "收货称重",
-  "description": "无码商品收货称重与就地开单核对 / Recepción y pesaje sin código",
+  "description": "无码商品收货称重与就地开单核对 / Pesaje sin código",
   "lang": "zh-CN",
   "dir": "auto",
   "start_url": "./index.html",
