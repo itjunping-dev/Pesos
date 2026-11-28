@@ -1,5 +1,5 @@
 /* aqui Pesos - Service Worker (offline-first static shell) */
-const CACHE_NAME = 'pesos-pwa-v5';
+const CACHE_NAME = 'pesos-pwa-v6';
 
 /* Precache the static shell so the app opens instantly from the home-screen
    icon even with no signal. CDN assets (Tailwind / ExcelJS / fonts) are
