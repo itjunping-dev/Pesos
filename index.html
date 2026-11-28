@@ -1255,7 +1255,9 @@
         bToastNeedWeighed: '请先至少称重 1 样蔬菜',
         bToastCommitted: '已将 {n} 项蔬菜写入本车核对单',
         bConfirmReset: '确定清空当前批量称重列表（已称记录将丢失）？',
-        bConfirmZeroPrice: '有 {n} 项单价为空或 $0，确定仍写入核对单？'
+        bConfirmZeroPrice: '有 {n} 项单价为空或 $0，确定仍写入核对单？',
+        toastDraftRestored: '已自动恢复中断前的录入草稿',
+        toastStorageBlocked: '当前浏览器禁止本地存储（可能为无痕或聊天内预览），来电易丢数据，请改用正式桌面图标/Chrome打开'
       },
       es: {
         hdrTitle: 'Recepción y Pesaje',
@@ -1501,7 +1503,9 @@
         bToastNeedWeighed: 'Pesa al menos 1 producto primero',
         bToastCommitted: '{n} productos guardados en Recibo',
         bConfirmReset: '¿Vaciar toda la lista actual de lote?',
-        bConfirmZeroPrice: 'Hay {n} ítems sin precio ($0). ¿Guardar igual?'
+        bConfirmZeroPrice: 'Hay {n} ítems sin precio ($0). ¿Guardar igual?',
+        toastDraftRestored: 'Borrador previo recuperado automáticamente',
+        toastStorageBlocked: 'Almacenamiento local bloqueado (modo incógnito o vista previa). Usa la app instalada o Chrome normal'
       }
     };
 
@@ -1652,10 +1656,31 @@
       localStorage.setItem(STORAGE_KEYS.SUP_PRODUCE_LISTS, JSON.stringify(state.supplierProduceLists || {}));
     }
 
-    /* Real-time draft persistence: prevents accidental refresh or app switch from losing inputs */
+    /* Real-time draft persistence: prevents accidental refresh, incoming calls, or app switch from losing inputs */
+    function hasActiveSingleDraft() {
+      if (state.itemNameInput && state.itemNameInput.trim()) return true;
+      const f = state.form || {};
+      if (f.quotedCrates || f.cratePrice || f.kgPrice || f.replenishWeight || f.porkTare || f.porkHeads || f.charcPieces) return true;
+      if (Array.isArray(f.grossScales) && f.grossScales.some(v => String(v || '').trim() !== '')) return true;
+      if (Array.isArray(f.tareRows) && f.tareRows.some(r => r && (String(r.count || '').trim() !== '' || String(r.unitWeight || '').trim() !== ''))) return true;
+      if (Array.isArray(f.cows) && f.cows.some(c => c && (String(c.halfA || '').trim() !== '' || String(c.halfB || '').trim() !== '' || String(c.unitPrice || '').trim() !== ''))) return true;
+      if (Array.isArray(f.rounds) && f.rounds.some(v => String(v || '').trim() !== '')) return true;
+      if (Array.isArray(f.charcScales) && f.charcScales.some(v => String(v || '').trim() !== '')) return true;
+      return false;
+    }
+
+    function hasActiveBatchDraft() {
+      if (!state.batch || !Array.isArray(state.batch.rows)) return false;
+      return state.batch.rows.some(r =>
+        (r.scales && r.scales.length > 0) ||
+        (r.draft && (String(r.draft.gross || '').trim() !== '' || String(r.draft.count || '').trim() !== '' || (r.draft.mix18 || 0) > 0 || (r.draft.mix25 || 0) > 0))
+      );
+    }
+
     function saveDraft() {
       try {
         const draft = {
+          activeTab: state.activeTab,
           dept: state.dept,
           subDept: state.subDept,
           supplier: state.supplier,
@@ -1679,6 +1704,7 @@
         if (!raw) return;
         const d = JSON.parse(raw);
         if (!d || typeof d !== 'object') return;
+        if (d.activeTab === 'weigh' || d.activeTab === 'bill') state.activeTab = d.activeTab;
         if (['produce', 'meat', 'charcuteria'].includes(d.dept)) state.dept = d.dept;
         if (['beef', 'pork', 'chicken'].includes(d.subDept)) state.subDept = d.subDept;
         if (typeof d.supplier === 'string') state.supplier = d.supplier;
@@ -3876,6 +3902,7 @@
 
     function setTab(tabName) {
       state.activeTab = tabName;
+      saveDraft();
       document.querySelectorAll('.dock-tab').forEach(btn => {
         const active = btn.dataset.tab === tabName;
         btn.classList.toggle('dock-tab-active', active);
@@ -4408,6 +4435,7 @@
       try {
         localStorage.setItem(STORAGE_KEYS.BATCH_DRAFT, JSON.stringify({
           step: state.batch.step,
+          search: state.batch.search || '',
           doneCollapsed: !!state.batch.doneCollapsed,
           rows: state.batch.rows
         }));
@@ -4426,7 +4454,7 @@
         if (!d || typeof d !== 'object') return;
         state.batch = {
           step: d.step === 'price' ? 'price' : 'weigh',
-          search: '',
+          search: typeof d.search === 'string' ? d.search : '',
           doneCollapsed: !!d.doneCollapsed,
           rows: Array.isArray(d.rows) ? d.rows.map(r => {
             const base = createBatchRow(r);
@@ -4440,10 +4468,12 @@
               replenishWeight: r.replenishWeight != null ? String(r.replenishWeight) : '',
               shortageAction: r.shortageAction === 'deduct' ? 'deduct' : 'full',
               quotedCratesOverride: r.quotedCratesOverride != null ? String(r.quotedCratesOverride) : '',
-              uiOpen: ''
+              uiOpen: ['addScale', 'replenish', 'edit'].includes(r.uiOpen) ? r.uiOpen : ''
             };
           }) : []
         };
+        const bsInp = document.getElementById('batch-search-inp');
+        if (bsInp) bsInp.value = state.batch.search;
       } catch {
         state.batch = { step: 'weigh', search: '', doneCollapsed: false, rows: [] };
       }
@@ -5400,6 +5430,7 @@
       searchInp.addEventListener('input', e => {
         state.batch.search = e.target.value;
         filterBatchCardsInPlace();
+        saveBatchDraft();
       });
       document.getElementById('btn-batch-search-clear').addEventListener('click', () => {
         state.batch.search = '';
@@ -5483,8 +5514,13 @@
           const targetPanel = btn.dataset.panel;
           row.uiOpen = row.uiOpen === targetPanel ? '' : targetPanel;
           if (row.uiOpen === 'addScale') {
-            row.draft = createBatchDraftPass(row.defaultTare);
+            const d = row.draft || {};
+            const hasTyped = String(d.gross || '').trim() !== '' || String(d.count || '').trim() !== '' || (d.mix18 || 0) > 0 || (d.mix25 || 0) > 0 || String(d.customCount || '').trim() !== '';
+            if (!hasTyped) {
+              row.draft = createBatchDraftPass(row.defaultTare);
+            }
           }
+          saveBatchDraft();
           renderBatchView();
         } else if (act === 'del-scale') {
           const sIdx = parseInt(btn.dataset.scaleIdx, 10);
@@ -5540,6 +5576,94 @@
       });
     }
 
+
+    /* ================== CALL / BACKGROUND INTERRUPTION GUARD ================== */
+    function isLocalStorageWritable() {
+      try {
+        const testKey = '__pesos_ls_test__';
+        localStorage.setItem(testKey, '1');
+        localStorage.removeItem(testKey);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function syncDomInputsToState() {
+      try {
+        const supEl = document.getElementById('inp-supplier');
+        if (supEl) state.supplier = supEl.value;
+        const itemEl = document.getElementById('inp-item-name');
+        if (itemEl) state.itemNameInput = itemEl.value;
+        const bsEl = document.getElementById('batch-search-inp');
+        if (bsEl) state.batch.search = bsEl.value;
+
+        // Sync single-mode form inputs
+        const formBox = document.getElementById('weighing-form-container');
+        if (formBox) {
+          formBox.querySelectorAll('[data-bind]').forEach(inp => { state.form[inp.dataset.bind] = inp.value; });
+          formBox.querySelectorAll('.gross-inp').forEach(inp => { state.form.grossScales[Number(inp.dataset.grossIdx)] = inp.value; });
+          formBox.querySelectorAll('.tare-inp').forEach(inp => {
+            const r = state.form.tareRows[Number(inp.dataset.tareIdx)];
+            if (r) r[inp.dataset.tareField] = inp.value;
+          });
+          formBox.querySelectorAll('.cow-inp').forEach(inp => {
+            const c = state.form.cows[Number(inp.dataset.cowIdx)];
+            if (c) c[inp.dataset.cowField] = inp.value;
+          });
+          formBox.querySelectorAll('.round-inp').forEach(inp => { state.form.rounds[Number(inp.dataset.roundIdx)] = inp.value; });
+          formBox.querySelectorAll('.charc-inp').forEach(inp => { state.form.charcScales[Number(inp.dataset.charcIdx)] = inp.value; });
+          formBox.querySelectorAll('.ctare-inp').forEach(inp => {
+            const r = state.form.charcTareRows[Number(inp.dataset.ctareIdx)];
+            if (r) r[inp.dataset.ctareField] = inp.value;
+          });
+          const repLive = document.getElementById('inp-replenish-live');
+          if (repLive) state.form.replenishWeight = repLive.value;
+        }
+
+        // Sync batch-mode inputs
+        const batchRoot = document.getElementById('produce-batch-container');
+        if (batchRoot && state.batch && Array.isArray(state.batch.rows)) {
+          batchRoot.querySelectorAll('[data-binp]').forEach(inp => {
+            const row = state.batch.rows.find(r => r.id === inp.dataset.rowId);
+            if (!row) return;
+            const field = inp.dataset.binp;
+            if (['count', 'gross', 'customCount', 'customUnit'].includes(field)) {
+              if (!row.draft) row.draft = createBatchDraftPass(row.defaultTare);
+              row.draft[field] = inp.value;
+            } else if (['stdWeight', 'replenishWeight', 'unitPrice', 'quotedCratesOverride'].includes(field)) {
+              row[field] = inp.value;
+            }
+          });
+        }
+      } catch { /* ignore sync errors */ }
+    }
+
+    function flushAllDraftsNow() {
+      syncDomInputsToState();
+      saveDraft();
+      saveBatchDraft();
+      saveStorage();
+    }
+
+    function setupCallInterruptionGuard() {
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          flushAllDraftsNow();
+        }
+      });
+      window.addEventListener('pagehide', flushAllDraftsNow);
+      window.addEventListener('beforeunload', flushAllDraftsNow);
+      window.addEventListener('blur', flushAllDraftsNow);
+      document.addEventListener('freeze', flushAllDraftsNow);
+      document.addEventListener('focusout', e => {
+        if (isEditable(e.target)) flushAllDraftsNow();
+      });
+      document.addEventListener('change', e => {
+        if (isEditable(e.target)) flushAllDraftsNow();
+      });
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       mountStaticIcons();
       loadStorage();
@@ -5553,7 +5677,13 @@
       renderBackupStatus();
       bindBatchEvents();
       syncProduceModeUI();
-      setTab('weigh');
+      const restoredTab = (state.activeTab === 'bill' && state.records.length > 0) ? 'bill' : 'weigh';
+      setTab(restoredTab);
+      if (!isLocalStorageWritable()) {
+        showToast(t('toastStorageBlocked'), 'error');
+      } else if (hasActiveSingleDraft() || hasActiveBatchDraft()) {
+        showToast(t('toastDraftRestored'), 'success');
+      }
 
       document.getElementById('btn-lang-toggle').addEventListener('click', () => {
         state.lang = state.lang === 'zh' ? 'es' : 'zh';
@@ -5834,6 +5964,7 @@
 
       setupKeyboardDockHandling();
       setupPullToRefreshGuard();
+      setupCallInterruptionGuard();
       registerServiceWorker();
     });
   </script>
